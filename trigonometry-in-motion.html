@@ -1,0 +1,2811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080b14">
+<title>Trigonometry in Motion</title>
+
+<!--
+  SINGLE-FILE BUILD
+  This file contains the complete application source merged into one HTML document.
+  It uses React, ReactDOM, Babel and Tailwind from CDNs so no local build step is required.
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Comfortaa', 'system-ui', 'sans-serif'],
+        body: ['Space Grotesk', 'system-ui', 'sans-serif']
+      }
+    }
+  }
+}
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+
+:root {
+  color-scheme: dark;
+  --font-display: 'Comfortaa', system-ui, sans-serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Smooth theme transition */
+* {
+  transition-property: background-color, border-color;
+  transition-duration: 300ms;
+  transition-timing-function: ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5);
+}
+
+/* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: currentColor;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0,0,0,0.3);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: currentColor;
+  cursor: pointer;
+  border: none;
+}
+
+/* Dropdown fade-in animation */
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.dropdown-fade {
+  animation: dropdownFade 0.25s ease-out forwards;
+  transform-origin: top right;
+}
+
+/* Dropdown item stagger */
+@keyframes itemSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.dropdown-item {
+  animation: itemSlideIn 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+/* Gradient text utility */
+.gradient-text-cyan {
+  background: linear-gradient(135deg, #38bdf8, #818cf8, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.gradient-text-amber {
+  background: linear-gradient(135deg, #fbbf24, #fb923c, #f87171);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.gradient-text-emerald {
+  background: linear-gradient(135deg, #34d399, #38bdf8, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body { min-height: 100vh; background: #080b14; }
+html.light body { background: #f7f9fc; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.0/babel.min.js"></script>
+
+<script type="text/babel" data-presets="typescript,react">
+const {
+  useCallback, useEffect, useMemo, useRef, useState, createContext, useContext
+} = React;
+
+
+// Minimal Lucide-compatible icon set used by this project.
+// Kept inline so the application remains a single HTML file.
+const __iconPaths = {
+  ChevronLeft:[["path",{d:"m15 18-6-6 6-6"}]],
+  ChevronRight:[["path",{d:"m9 18 6-6-6-6"}]],
+  ChevronDown:[["path",{d:"m6 9 6 6 6-6"}]],
+  Compass:[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"}]],
+  Sun:[["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"}]],
+  Moon:[["path",{d:"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"}]],
+  Globe:[["circle",{cx:"12",cy:"12",r:"10"}],["line",{x1:"2",y1:"12",x2:"22",y2:"12"}],["path",{d:"M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20"}]],
+  Home:[["path",{d:"m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"}],["polyline",{points:"9 21 9 12 15 12 15 21"}]],
+  LayoutGrid:[["rect",{x:"3",y:"3",width:"7",height:"7",rx:"1"}],["rect",{x:"14",y:"3",width:"7",height:"7",rx:"1"}],["rect",{x:"3",y:"14",width:"7",height:"7",rx:"1"}],["rect",{x:"14",y:"14",width:"7",height:"7",rx:"1"}]],
+  ArrowRight:[["line",{x1:"5",y1:"12",x2:"19",y2:"12"}],["polyline",{points:"12 5 19 12 12 19"}]],
+  Sparkles:[["path",{d:"m12 3-1.5 4.5L6 9l4.5 1.5L12 15l1.5-4.5L18 9l-4.5-1.5L12 3z"}],["path",{d:"m5 16-.8 2.2L2 19l2.2.8L5 22l.8-2.2L8 19l-2.2-.8L5 16z"}]],
+  Atom:[["circle",{cx:"12",cy:"12",r:"1"}],["path",{d:"M20.2 20.2c-1.8 1.8-6.5.4-10.4-3.5S4.4 8.1 6.2 6.2 12.7 5.8 16.6 9.7s5.4 8.7 3.6 10.5z"}],["path",{d:"M6.2 17.8c-1.8-1.8-.4-6.5 3.5-10.4s8.6-5.4 10.5-3.6-.4 6.5-4.3 10.4-7.9 5.4-9.7 3.6z"}],["path",{d:"M12 21c-2.5 0-4.5-4-4.5-9s2-9 4.5-9 4.5 4 4.5 9-2 9-4.5 9z"}]],
+  Radio:[["path",{d:"M4.9 19.1C1 15.2 1 8.8 4.9 4.9"}],["path",{d:"M8.1 15.9a5.5 5.5 0 0 1 0-7.8"}],["circle",{cx:"12",cy:"12",r:"1"}],["path",{d:"M15.9 8.1a5.5 5.5 0 0 1 0 7.8"}],["path",{d:"M19.1 4.9C23 8.8 23 15.2 19.1 19.1"}]],
+  Cog:[["path",{d:"M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"}],["path",{d:"M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.5 1.5-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-2.1v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.5-1.5.1-.1A1.7 1.7 0 0 0 9.1 15a1.7 1.7 0 0 0-1.6-1H7.3v-2.1h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.5-1.5.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V6h2.1v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.5 1.5-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2V14h-.2a1.7 1.7 0 0 0-1.6 1z"}]],
+  Waves:[["path",{d:"M2 12c2.5-5 5.5-5 8 0s5.5 5 8 0 5.5-5 8 0"}],["path",{d:"M2 18c2.5-5 5.5-5 8 0s5.5 5 8 0 5.5-5 8 0"}]],
+  Building2:[["path",{d:"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"}],["path",{d:"M6 10H4a2 2 0 0 0-2 2v10h20V12a2 2 0 0 0-2-2h-2"}],["path",{d:"M10 6h4M10 10h4M10 14h4M10 18h4"}]]
+};
+function __Icon({name,className="",size}) {
+  const attrs = {width:size||"1em",height:size||"1em",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round",className};
+  const nodes = (__iconPaths[name]||[]).map((item,i)=>React.createElement(item[0],{...item[1],key:i}));
+  return React.createElement("svg",attrs,nodes);
+}
+const ChevronLeft=(p)=>__Icon({name:"ChevronLeft",...p});
+const ChevronRight=(p)=>__Icon({name:"ChevronRight",...p});
+const ChevronDown=(p)=>__Icon({name:"ChevronDown",...p});
+const Compass=(p)=>__Icon({name:"Compass",...p});
+const Sun=(p)=>__Icon({name:"Sun",...p});
+const Moon=(p)=>__Icon({name:"Moon",...p});
+const Globe=(p)=>__Icon({name:"Globe",...p});
+const Home=(p)=>__Icon({name:"Home",...p});
+const LayoutGrid=(p)=>__Icon({name:"LayoutGrid",...p});
+const ArrowRight=(p)=>__Icon({name:"ArrowRight",...p});
+const Sparkles=(p)=>__Icon({name:"Sparkles",...p});
+const Atom=(p)=>__Icon({name:"Atom",...p});
+const Radio=(p)=>__Icon({name:"Radio",...p});
+const Cog=(p)=>__Icon({name:"Cog",...p});
+const Waves=(p)=>__Icon({name:"Waves",...p});
+const Building2=(p)=>__Icon({name:"Building2",...p});
+
+
+type Theme = 'dark' | 'light';
+
+type ThemeCtx = {
+  theme: Theme;
+  toggle: () => void;
+};
+
+const Ctx = createContext<ThemeCtx>({ theme: 'dark', toggle: () => {} });
+
+function useTheme() {
+  return useContext(Ctx);
+}
+
+function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>('dark');
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', theme === 'light');
+  }, [theme]);
+
+  const toggle = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+
+  return <Ctx.Provider value={{ theme, toggle }}>{children}</Ctx.Provider>;
+}
+
+
+type SlideMeta = {
+  id: string;
+  category: string;
+  title: string;
+  subtitle: string;
+  accent: string;
+  /** second accent for gradients */
+  accent2: string;
+  facts: { label: string; value: string }[];
+};
+
+const slides: SlideMeta[] = [
+  {
+    id: 'unit-circle',
+    category: 'Foundations',
+    title: 'The Unit Circle',
+    subtitle: 'Where sine and cosine are born',
+    accent: '#38bdf8',
+    accent2: '#0ea5e9',
+    facts: [
+      { label: 'Radius', value: '1' },
+      { label: 'sin θ', value: 'y-coordinate' },
+      { label: 'cos θ', value: 'x-coordinate' },
+    ],
+  },
+  {
+    id: 'wave-superposition',
+    category: 'Acoustics',
+    title: 'Wave Superposition',
+    subtitle: 'How sound waves combine and cancel',
+    accent: '#f472b6',
+    accent2: '#db2777',
+    facts: [
+      { label: 'Constructive', value: 'peaks align' },
+      { label: 'Destructive', value: 'peaks cancel' },
+      { label: 'Beat freq', value: '|f₁ − f₂|' },
+    ],
+  },
+  {
+    id: 'fourier',
+    category: 'Signal Processing',
+    title: 'Fourier Synthesis',
+    subtitle: 'Building a wave from pure circles',
+    accent: '#fbbf24',
+    accent2: '#f59e0b',
+    facts: [
+      { label: 'Basis', value: 'sin + cos' },
+      { label: 'Spectrum', value: 'frequency' },
+      { label: 'Used in', value: 'JPEG, MP3' },
+    ],
+  },
+  {
+    id: 'pendulum',
+    category: 'Mechanics',
+    title: 'The Pendulum',
+    subtitle: 'Simple harmonic motion in action',
+    accent: '#34d399',
+    accent2: '#10b981',
+    facts: [
+      { label: 'Period', value: 'T = 2π√(L/g)' },
+      { label: 'Small angle', value: 'θ ≈ sin θ' },
+      { label: 'Isochronism', value: 'amplitude-free' },
+    ],
+  },
+  {
+    id: 'lissajous',
+    category: 'Electronics',
+    title: 'Lissajous Figures',
+    subtitle: 'Oscilloscope patterns from phase',
+    accent: '#a78bfa',
+    accent2: '#7c3aed',
+    facts: [
+      { label: 'Axes', value: 'x = sin(at)' },
+      { label: 'Phase', value: 'δ' },
+      { label: 'Ratio', value: 'a : b' },
+    ],
+  },
+  {
+    id: 'gears',
+    category: 'Machinery',
+    title: 'Gears & Torque',
+    subtitle: 'Rotational power transmission',
+    accent: '#fb923c',
+    accent2: '#ea580c',
+    facts: [
+      { label: 'Gear ratio', value: 'N₂/N₁' },
+      { label: 'Torque', value: 'τ = rF sin θ' },
+      { label: 'Meshing', value: 'sinusoidal teeth' },
+    ],
+  },
+  {
+    id: 'crank',
+    category: 'Engines',
+    title: 'Crank-Slider Mechanism',
+    subtitle: 'Converting rotation to linear motion',
+    accent: '#22d3ee',
+    accent2: '#06b6d4',
+    facts: [
+      { label: 'Stroke', value: '2r' },
+      { label: 'Position', value: 'x = r cos θ + L' },
+      { label: 'Used in', value: 'pistons' },
+    ],
+  },
+  {
+    id: 'radar',
+    category: 'Navigation',
+    title: 'Radar Sweep',
+    subtitle: 'Scanning the sky with angles',
+    accent: '#4ade80',
+    accent2: '#16a34a',
+    facts: [
+      { label: 'Range', value: 'c·Δt/2' },
+      { label: 'Azimuth', value: 'θ' },
+      { label: 'Doppler', value: 'Δf ∝ v' },
+    ],
+  },
+  {
+    id: 'antenna',
+    category: 'Telecom',
+    title: 'Antenna Radiation',
+    subtitle: 'Beaming signals with trigonometry',
+    accent: '#f87171',
+    accent2: '#dc2626',
+    facts: [
+      { label: 'Pattern', value: 'sin θ / θ' },
+      { label: 'Gain', value: 'directional' },
+      { label: 'Phased array', value: 'phase shift' },
+    ],
+  },
+  {
+    id: 'solar',
+    category: 'Energy',
+    title: 'Solar Tracking',
+    subtitle: 'Chasing the sun across the sky',
+    accent: '#facc15',
+    accent2: '#eab308',
+    facts: [
+      { label: 'Elevation', value: 'sin δ' },
+      { label: 'Azimuth', value: 'tan⁻¹' },
+      { label: 'Gain', value: '~30%' },
+    ],
+  },
+];
+
+
+const slideDescriptions: Record<string, string> = {
+  'unit-circle':
+    'Every value of sine and cosine lives on a circle of radius one. As the angle sweeps around, the vertical coordinate traces sine and the horizontal coordinate traces cosine — the two functions that underpin all of trigonometry. Drag the slider to explore any angle, or let it spin.',
+  'wave-superposition':
+    'When two sound waves meet, their amplitudes add point by point. Align the peaks and you get a louder sound (constructive interference); offset them and the sound vanishes (destructive interference). Adjust the two frequencies and watch the combined wave — and the slow "beat" pattern that emerges when they are close.',
+  'fourier':
+    'Any periodic signal — a square wave, a musical note, a voice — can be built by adding pure sine waves of different frequencies. This is the Fourier transform, the mathematical heart of audio compression, image formats, and modern telecommunications. Add more harmonics and watch the bumpy approximation sharpen into a perfect square wave.',
+  'pendulum':
+    'A swinging pendulum is nature\'s clock. For small angles, its period depends only on length and gravity — not on how far it swings. This is why pendulum clocks kept time for centuries. Change the rod length or gravity (try the Moon\'s 1.6 m/s²) and see the period shift exactly as the formula predicts.',
+  'lissajous':
+    'Feed two perpendicular sine waves into an oscilloscope and you get these elegant curves. Their shape depends only on the frequency ratio and phase difference between the signals. Engineers use them to measure phase and tune electronic circuits. Change a, b, and δ to discover the whole family of patterns.',
+  'gears':
+    'Gears transmit rotation through interlocking teeth whose profiles follow an involute of a circle — a curve derived from trigonometry. The gear ratio is set by tooth count, and torque scales with radius. Watch the small gear spin faster than the large one by exactly the ratio of their teeth.',
+  'crank':
+    'The crank-slider turns circular motion into the straight-line motion that drives every piston engine. The piston position follows x = r cos θ + √(L² − r² sin²θ) — a formula built entirely from trigonometry. Rev the engine and watch the piston trace that exact path inside its cylinder.',
+  'radar':
+    'Radar finds targets by sending radio pulses and timing the echo. A rotating antenna sweeps the sky; when the beam crosses an object, its reflection lights up on the display. The distance comes from the speed of light and the echo delay, the bearing from the antenna angle. Adjust the sweep speed and watch the blips glow as the beam passes.',
+  'antenna':
+    'A phased array steers a radio beam without moving — by shifting the phase of each element so the waves add up in the chosen direction. The radiation pattern is pure trigonometry: the sinc-shaped main lobe and side lobes come from summing sine waves across the array. Change the number of elements and the phase step to steer the beam.',
+  'solar':
+    'Solar trackers follow the sun across the sky to keep panels perpendicular to incoming light, boosting energy capture by roughly 30%. The sun\'s elevation angle is computed from latitude, time of day, and solar declination — all trigonometric functions. Move the hour and latitude sliders and watch the panel tilt to match the sun.',
+};
+
+
+type Lang = 'en' | 'hi';
+
+type Translation = {
+  nav: {
+    prev: string;
+    next: string;
+    navigate: string;
+    explore: string;
+    landing: string;
+    slides: string;
+  };
+  landing: {
+    badge: string;
+    title1: string;
+    title2: string;
+    subtitle: string;
+    cta: string;
+    scroll: string;
+    features: { title: string; desc: string }[];
+  };
+  theme: {
+    light: string;
+    dark: string;
+  };
+  lang: {
+    label: string;
+    en: string;
+    hi: string;
+  };
+  footer: {
+    madeBy: string;
+  };
+  slides: Record<string, {
+    title: string;
+    subtitle: string;
+    category: string;
+    description: string;
+    realLife: string;
+    facts: { label: string; value: string }[];
+  }>;
+};
+
+const en: Translation = {
+  nav: {
+    prev: 'Previous',
+    next: 'Next',
+    navigate: 'to navigate',
+    explore: 'Explore',
+    landing: 'Home',
+    slides: 'Slides',
+  },
+  landing: {
+    badge: 'Interactive Showcase',
+    title1: 'Trigonometry',
+    title2: 'in Motion',
+    subtitle: 'The hidden mathematics behind real-world machines, from pendulum clocks to radar systems. Explore 10 interactive demonstrations of how sine, cosine, and their cousins shape the technology around us.',
+    cta: 'Begin Exploring',
+    scroll: 'Scroll to explore',
+    features: [
+      { title: '10 Interactive Demos', desc: 'Hands-on canvas animations of real applications' },
+      { title: 'Real-World Context', desc: 'See where each concept powers everyday machines' },
+      { title: 'Bilingual', desc: 'Available in English and Hindi' },
+    ],
+  },
+  theme: { light: 'Light', dark: 'Dark' },
+  lang: { label: 'Language', en: 'English', hi: 'हिंदी' },
+  footer: { madeBy: 'Made by Aishik' },
+  slides: {
+    'unit-circle': {
+      title: 'The Unit Circle',
+      subtitle: 'Where sine and cosine are born',
+      category: 'Foundations',
+      description: 'Every value of sine and cosine lives on a circle of radius one. As the angle sweeps around, the vertical coordinate traces sine and the horizontal coordinate traces cosine — the two functions that underpin all of trigonometry. Drag the slider to explore any angle, or let it spin.',
+      realLife: 'Used everywhere: GPS coordinates use arcsine for latitude calculations; computer graphics rotate objects with rotation matrices built from cos and sin; architects use circular geometry for domes and arches; even music tuning apps use the unit circle to visualize phase relationships between frequencies.',
+      facts: [
+        { label: 'Radius', value: '1' },
+        { label: 'sin θ', value: 'y-coordinate' },
+        { label: 'cos θ', value: 'x-coordinate' },
+      ],
+    },
+    'wave-superposition': {
+      title: 'Wave Superposition',
+      subtitle: 'How sound waves combine and cancel',
+      category: 'Acoustics',
+      description: 'When two sound waves meet, their amplitudes add point by point. Align the peaks and you get a louder sound (constructive interference); offset them and the sound vanishes (destructive interference). Adjust the two frequencies and watch the combined wave — and the slow "beat" pattern that emerges when they are close.',
+      realLife: 'Noise-cancelling headphones use destructive interference to eliminate ambient sound. Concert hall acoustics are designed to maximize constructive interference for rich sound. Medical ultrasound imaging relies on wave superposition to build images from echoes. Audio equalizers manipulate wave interference to shape tone.',
+      facts: [
+        { label: 'Constructive', value: 'peaks align' },
+        { label: 'Destructive', value: 'peaks cancel' },
+        { label: 'Beat freq', value: '|f₁ − f₂|' },
+      ],
+    },
+    'fourier': {
+      title: 'Fourier Synthesis',
+      subtitle: 'Building a wave from pure circles',
+      category: 'Signal Processing',
+      description: 'Any periodic signal — a square wave, a musical note, a voice — can be built by adding pure sine waves of different frequencies. This is the Fourier transform, the mathematical heart of audio compression, image formats, and modern telecommunications. Add more harmonics and watch the bumpy approximation sharpen into a perfect square wave.',
+      realLife: 'JPEG image compression discards high-frequency Fourier components to shrink file sizes. MP3 audio uses a modified discrete cosine transform (a Fourier variant) to compress music. MRI machines use Fourier transforms to convert magnetic signals into medical images. Shazam identifies songs by matching Fourier spectra.',
+      facts: [
+        { label: 'Basis', value: 'sin + cos' },
+        { label: 'Spectrum', value: 'frequency' },
+        { label: 'Used in', value: 'JPEG, MP3' },
+      ],
+    },
+    'pendulum': {
+      title: 'The Pendulum',
+      subtitle: 'Simple harmonic motion in action',
+      category: 'Mechanics',
+      description: 'A swinging pendulum is nature\'s clock. For small angles, its period depends only on length and gravity — not on how far it swings. This is why pendulum clocks kept time for centuries. Change the rod length or gravity (try the Moon\'s 1.6 m/s²) and see the period shift exactly as the formula predicts.',
+      realLife: 'Pendulum clocks kept time accurate to seconds per day for 300 years. Foucault\'s pendulum proved Earth\'s rotation using a giant swinging mass. Seismographs use pendulum-like mechanisms to detect earthquakes. Playground swings, metronomes, and even the balance wheels in mechanical watches all rely on this same trigonometric principle.',
+      facts: [
+        { label: 'Period', value: 'T = 2π√(L/g)' },
+        { label: 'Small angle', value: 'θ ≈ sin θ' },
+        { label: 'Isochronism', value: 'amplitude-free' },
+      ],
+    },
+    'lissajous': {
+      title: 'Lissajous Figures',
+      subtitle: 'Oscilloscope patterns from phase',
+      category: 'Electronics',
+      description: 'Feed two perpendicular sine waves into an oscilloscope and you get these elegant curves. Their shape depends only on the frequency ratio and phase difference between the signals. Engineers use them to measure phase and tune electronic circuits. Change a, b, and δ to discover the whole family of patterns.',
+      realLife: 'Oscilloscopes display Lissajous patterns to measure phase differences between signals in circuit debugging. Laser light shows project Lissajous curves by steering mirrors with sine-wave signals. The patterns appear in atomic force microscopy and were used in early television test patterns to calibrate broadcast equipment.',
+      facts: [
+        { label: 'Axes', value: 'x = sin(at)' },
+        { label: 'Phase', value: 'δ' },
+        { label: 'Ratio', value: 'a : b' },
+      ],
+    },
+    'gears': {
+      title: 'Gears & Torque',
+      subtitle: 'Rotational power transmission',
+      category: 'Machinery',
+      description: 'Gears transmit rotation through interlocking teeth whose profiles follow an involute of a circle — a curve derived from trigonometry. The gear ratio is set by tooth count, and torque scales with radius. Watch the small gear spin faster than the large one by exactly the ratio of their teeth.',
+      realLife: 'Car transmissions use gear ratios to trade speed for torque. Wind turbines use massive gearboxes to convert slow blade rotation into fast generator speeds. Bicycles use derailleurs to shift gear ratios for hills vs. flats. The involute gear tooth profile — derived from unwrapping a string off a circle — ensures smooth, constant-speed power transfer.',
+      facts: [
+        { label: 'Gear ratio', value: 'N₂/N₁' },
+        { label: 'Torque', value: 'τ = rF sin θ' },
+        { label: 'Meshing', value: 'sinusoidal teeth' },
+      ],
+    },
+    'crank': {
+      title: 'Crank-Slider Mechanism',
+      subtitle: 'Converting rotation to linear motion',
+      category: 'Engines',
+      description: 'The crank-slider turns circular motion into the straight-line motion that drives every piston engine. The piston position follows x = r cos θ + √(L² − r² sin²θ) — a formula built entirely from trigonometry. Rev the engine and watch the piston trace that exact path inside its cylinder.',
+      realLife: 'Every car engine uses crank-sliders — typically 4, 6, or 8 of them firing in sequence. Steam locomotives used the same mechanism to drive their wheels. Air compressors, water pumps, and sewing machines all convert rotation to linear motion this way. The trigonometric position formula determines valve timing and combustion efficiency.',
+      facts: [
+        { label: 'Stroke', value: '2r' },
+        { label: 'Position', value: 'x = r cos θ + L' },
+        { label: 'Used in', value: 'pistons' },
+      ],
+    },
+    'radar': {
+      title: 'Radar Sweep',
+      subtitle: 'Scanning the sky with angles',
+      category: 'Navigation',
+      description: 'Radar finds targets by sending radio pulses and timing the echo. A rotating antenna sweeps the sky; when the beam crosses an object, its reflection lights up on the display. The distance comes from the speed of light and the echo delay, the bearing from the antenna angle. Adjust the sweep speed and watch the blips glow as the beam passes.',
+      realLife: 'Air traffic control radar tracks thousands of aircraft simultaneously using rotating antennas. Weather radar detects precipitation by measuring echo strength and Doppler shift. Military radar systems guide missiles and detect stealth aircraft. Automotive adaptive cruise control uses miniature radar to measure distance to the car ahead.',
+      facts: [
+        { label: 'Range', value: 'c·Δt/2' },
+        { label: 'Azimuth', value: 'θ' },
+        { label: 'Doppler', value: 'Δf ∝ v' },
+      ],
+    },
+    'antenna': {
+      title: 'Antenna Radiation',
+      subtitle: 'Beaming signals with trigonometry',
+      category: 'Telecom',
+      description: 'A phased array steers a radio beam without moving — by shifting the phase of each element so the waves add up in the chosen direction. The radiation pattern is pure trigonometry: the sinc-shaped main lobe and side lobes come from summing sine waves across the array. Change the number of elements and the phase step to steer the beam.',
+      realLife: '5G base stations use phased arrays to beam-form signals directly to users. Modern radar systems on fighter jets steer beams electronically at the speed of light — no moving parts. Satellite TV dishes use parabolic reflectors shaped by trigonometric curves. WiFi routers with MIMO antennas use phase shifting to focus signal through walls.',
+      facts: [
+        { label: 'Pattern', value: 'sin θ / θ' },
+        { label: 'Gain', value: 'directional' },
+        { label: 'Phased array', value: 'phase shift' },
+      ],
+    },
+    'solar': {
+      title: 'Solar Tracking',
+      subtitle: 'Chasing the sun across the sky',
+      category: 'Energy',
+      description: 'Solar trackers follow the sun across the sky to keep panels perpendicular to incoming light, boosting energy capture by roughly 30%. The sun\'s elevation angle is computed from latitude, time of day, and solar declination — all trigonometric functions. Move the hour and latitude sliders and watch the panel tilt to match the sun.',
+      realLife: 'Utility-scale solar farms use dual-axis trackers to follow the sun, generating 30-40% more power than fixed panels. The Mars Rover\'s solar panels use trigonometric sun-position algorithms to optimize charging. Sundials — the oldest solar devices — use the same elevation angle math. Smartphone solar chargers and smart home blinds use similar tracking logic.',
+      facts: [
+        { label: 'Elevation', value: 'sin δ' },
+        { label: 'Azimuth', value: 'tan⁻¹' },
+        { label: 'Gain', value: '~30%' },
+      ],
+    },
+  },
+};
+
+const hi: Translation = {
+  nav: {
+    prev: 'पिछला',
+    next: 'अगला',
+    navigate: 'नेविगेट करने के लिए',
+    explore: 'एक्सप्लोर करें',
+    landing: 'होम',
+    slides: 'स्लाइड्स',
+  },
+  landing: {
+    badge: 'इंटरैक्टिव शोकेस',
+    title1: 'त्रिकोणमिति',
+    title2: 'गति में',
+    subtitle: 'वास्तविक दुनिया की मशीनों के पीछे छिपा गणित — पेंडुलम घड़ियों से लेकर रडार सिस्टम तक। देखें 10 इंटरैक्टिव प्रदर्शन कि कैसे साइन, कोसाइन और उनके रिश्तेदार हमारे आसपास की तकनीक को आकार देते हैं।',
+    cta: 'एक्सप्लोर शुरू करें',
+    scroll: 'नीचे स्क्रॉल करें',
+    features: [
+      { title: '10 इंटरैक्टिव डेमो', desc: 'वास्तविक अनुप्रयोगों के हाथ-से कैनवास एनिमेशन' },
+      { title: 'वास्तविक-दुनिया संदर्भ', desc: 'देखें कि प्रत्येक अवधारणा कहाँ रोज़मर्रा की मशीनों को चलाती है' },
+      { title: 'द्विभाषी', desc: 'अंग्रेजी और हिंदी में उपलब्ध' },
+    ],
+  },
+  theme: { light: 'लाइट', dark: 'डार्क' },
+  lang: { label: 'भाषा', en: 'English', hi: 'हिंदी' },
+  footer: { madeBy: 'ऐशिक द्वारा निर्मित' },
+  slides: {
+    'unit-circle': {
+      title: 'एकक वृत्त',
+      subtitle: 'जहाँ साइन और कोसाइन जन्म लेते हैं',
+      category: 'मूलभूत',
+      description: 'साइन और कोसाइन का प्रत्येक मान एक त्रिज्या वाले वृत्त पर रहता है। जैसे-जैसे कोण घूमता है, ऊर्ध्वाधर निर्देशांक साइन को ट्रेस करता है और क्षैतिज निर्देशांक कोसाइन को। स्लाइडर खींचें किसी भी कोण को एक्सप्लोर करने के लिए, या इसे घूमने दें।',
+      realLife: 'हर जगह उपयोग: GPS निर्देशांक अक्षांश के लिए आर्कसाइन का उपयोग करते हैं; कंप्यूटर ग्राफिक्स cos और sin से बने रोटेशन मैट्रिक्स से वस्तुओं को घुमाते हैं; वास्तुकार गुंबद और मेहराब के लिए वृत्ताकार ज्यामिति का उपयोग करते हैं; संगीत ट्यूनिंग ऐप भी एकक वृत्त का उपयोग करते हैं।',
+      facts: [
+        { label: 'त्रिज्या', value: '1' },
+        { label: 'sin θ', value: 'y-निर्देशांक' },
+        { label: 'cos θ', value: 'x-निर्देशांक' },
+      ],
+    },
+    'wave-superposition': {
+      title: 'तरंग अध्यारोपण',
+      subtitle: 'ध्वनि तरंगें कैसे मिलती और रद्द होती हैं',
+      category: 'ध्वनिकी',
+      description: 'जब दो ध्वनि तरंगें मिलती हैं, उनके आयाम बिंदु दर बिंदु जुड़ते हैं। शिखरों को संरेखित करें और आपको तेज ध्वनि मिलती है (रचनात्मक हस्तक्षेप); उन्हें ऑफसेट करें और ध्वनि गायब हो जाती है (विनाशकारी हस्तक्षेप)। दो आवृत्तियों को समायोजित करें और संयुक्त तरंग देखें।',
+      realLife: 'नॉइज़-कैंसलिंग हेडफ़ोन परिवेश ध्वनि को समाप्त करने के लिए विनाशकारी हस्तक्षेप का उपयोग करते हैं। कॉन्सर्ट हॉल ध्वनिकी रचनात्मक हस्तक्षेप को अधिकतम करने के लिए डिज़ाइन की जाती है। मेडिकल अल्ट्रासाउंड इमेजिंग छवियों को बनाने के लिए तरंग अध्यारोपण पर निर्भर करती है। ऑडियो इक्वलाइज़र टोन को आकार देने के लिए तरंग हस्तक्षेप में हेरफेर करते हैं।',
+      facts: [
+        { label: 'रचनात्मक', value: 'शिखर संरेखित' },
+        { label: 'विनाशकारी', value: 'शिखर रद्द' },
+        { label: 'बीट आवृत्ति', value: '|f₁ − f₂|' },
+      ],
+    },
+    'fourier': {
+      title: 'फूरियर संश्लेषण',
+      subtitle: 'शुद्ध वृत्तों से तरंग बनाना',
+      category: 'सिग्नल प्रोसेसिंग',
+      description: 'कोई भी आवर्ती सिग्नल — वर्ग तरंग, संगीत नोट, आवाज़ — अलग-अलग आवृत्तियों की शुद्ध साइन तरंगों को जोड़कर बनाया जा सकता है। यह फूरियर ट्रांसफ़ॉर्म है — ऑडियो कम्प्रेशन, इमेज फ़ॉर्मेट और आधुनिक दूरसंचार का गणितीय हृदय।',
+      realLife: 'JPEG इमेज कम्प्रेशन उच्च-आवृत्ति फूरियर घटकों को हटाकर फ़ाइल आकार कम करता है। MP3 ऑडियो संगीत को कम्प्रेस करने के लिए एक संशोधित डिस्क्रीट कोसाइन ट्रांसफ़ॉर्म का उपयोग करता है। MRI मशीनें चुंबकीय सिग्नल को मेडिकल इमेज में बदलने के लिए फूरियर ट्रांसफ़ॉर्म का उपयोग करती हैं। Shazam फूरियर स्पेक्ट्रा का मिलान करके गाने पहचानता है।',
+      facts: [
+        { label: 'आधार', value: 'sin + cos' },
+        { label: 'स्पेक्ट्रम', value: 'आवृत्ति' },
+        { label: 'उपयोग', value: 'JPEG, MP3' },
+      ],
+    },
+    'pendulum': {
+      title: 'पेंडुलम',
+      subtitle: 'सरल हार्मोनिक गति',
+      category: 'यांत्रिकी',
+      description: 'एक झूलता पेंडुलम प्रकृति की घड़ी है। छोटे कोणों के लिए, इसका आवर्तकाल केवल लंबाई और गुरुत्व पर निर्भर करता है — न कि यह कितना दूर झूलता है। यही कारण है कि पेंडुलम घड़ियाँ सदियों तक समय रखती थीं।',
+      realLife: 'पेंडुलम घड़ियाँ 300 वर्षों तक दिन में सेकंड तक सटीक समय रखती थीं। फ़ुको के पेंडुलम ने एक विशाल झूलते द्रव्यमान का उपयोग करके पृथ्वी के घूर्णन को सिद्ध किया। भूकंपीय लेखक पेंडुलम-जैसे तंत्र का उपयोग करते हैं। झूले, मेट्रोनोम और यांत्रिक घड़ियों के बैलेंस व्हील सभी इसी त्रिकोणमितीय सिद्धांत पर निर्भर करते हैं।',
+      facts: [
+        { label: 'आवर्तकाल', value: 'T = 2π√(L/g)' },
+        { label: 'छोटा कोण', value: 'θ ≈ sin θ' },
+        { label: 'समकालिकता', value: 'आयाम-मुक्त' },
+      ],
+    },
+    'lissajous': {
+      title: 'लिसाजू आकृतियाँ',
+      subtitle: 'फेज से ऑसिलोस्कोप पैटर्न',
+      category: 'इलेक्ट्रॉनिक्स',
+      description: 'दो लंबवत साइन तरंगों को ऑसिलोस्कोप में डालें और आपको ये सुंदर वक्र मिलते हैं। उनका आकार केवल आवृत्ति अनुपात और फेज अंतर पर निर्भर करता है। इंजीनियर फेज मापने और सर्किट को ट्यून करने के लिए इनका उपयोग करते हैं।',
+      realLife: 'ऑसिलोस्कोप सर्किट डिबगिंग में सिग्नल के बीच फेज अंतर मापने के लिए लिसाजू पैटर्न प्रदर्शित करते हैं। लेज़र लाइट शो साइन-वेव सिग्नल के साथ दर्पणों को स्टीयर करके लिसाजू वक्र प्रोजेक्ट करते हैं। ये पैटर्न ब्रॉडकास्ट उपकरण को कैलिब्रेट करने के लिए शुरुआती टेलीविज़न टेस्ट पैटर्न में उपयोग होते थे।',
+      facts: [
+        { label: 'अक्ष', value: 'x = sin(at)' },
+        { label: 'फेज', value: 'δ' },
+        { label: 'अनुपात', value: 'a : b' },
+      ],
+    },
+    'gears': {
+      title: 'गियर और टॉर्क',
+      subtitle: 'घूर्णी शक्ति संचरण',
+      category: 'मशीनरी',
+      description: 'गियर एक वृत्त के इन्वोल्यूट का अनुसरण करने वाले इंटरलॉकिंग दाँतों के माध्यम से घूर्णन संचारित करते हैं — एक वक्र जो त्रिकोणमिति से लिया गया है। गियर अनुपात दाँत संख्या से तय होता है, और टॉर्क त्रिज्या के साथ बढ़ता है।',
+      realLife: 'कार ट्रांसमिशन गियर अनुपातों का उपयोग करके गति को टॉर्क में बदलते हैं। विंड टर्बाइनें बड़े गियरबॉक्स का उपयोग करती हैं। साइकिलें पहाड़ियों के लिए गियर अनुपात बदलती हैं। इन्वोल्यूट गियर दाँत प्रोफ़ाइल एक वृत्त से धागे को खोलकर प्राप्त किया जाता है।',
+      facts: [
+        { label: 'गियर अनुपात', value: 'N₂/N₁' },
+        { label: 'टॉर्क', value: 'τ = rF sin θ' },
+        { label: 'मेशिंग', value: 'साइनसॉइडल दाँत' },
+      ],
+    },
+    'crank': {
+      title: 'क्रैंक-स्लाइडर तंत्र',
+      subtitle: 'घूर्णन को रैखिक गति में बदलना',
+      category: 'इंजन',
+      description: 'क्रैंक-स्लाइडर वृत्ताकार गति को सीधी-रेखा गति में बदलता है जो हर पिस्टन इंजन को चलाती है। पिस्टन की स्थिति x = r cos θ + √(L² − r² sin²θ) का अनुसरण करती है — एक सूत्र जो पूरी तरह त्रिकोणमिति से बना है।',
+      realLife: 'हर कार इंजन क्रैंक-स्लाइडर का उपयोग करता है — आमतौर पर 4, 6, या 8 क्रम में। भाप लोकोमोटिव अपने पहियों को चलाने के लिए इसी तंत्र का उपयोग करते थे। एयर कंप्रेसर, पानी के पंप, और सिलाई मशीनें सभी घूर्णन को रैखिक गति में बदलते हैं।',
+      facts: [
+        { label: 'स्ट्रोक', value: '2r' },
+        { label: 'स्थिति', value: 'x = r cos θ + L' },
+        { label: 'उपयोग', value: 'पिस्टन' },
+      ],
+    },
+    'radar': {
+      title: 'रडार स्वीप',
+      subtitle: 'कोणों से आसमान स्कैन करना',
+      category: 'नेविगेशन',
+      description: 'रडार रेडियो पल्स भेजकर और गूँज का समय मापकर लक्ष्य ढूँढता है। एक घूमता हुआ एंटीना आसमान स्वीप करता है; जब बीम किसी वस्तु को पार करती है, तो उसका प्रतिबिंब प्रदर्शन पर चमकता है। दूरी प्रकाश की गति से, दिशा एंटीना कोण से।',
+      realLife: 'एयर ट्रैफ़िक कंट्रोल रडार घूमते एंटीना से हज़ारों विमानों को ट्रैक करता है। मौसम रडार गूँज तीक्ष्णता और डॉप्लर शिफ्ट मापकर वर्षा का पता लगाता है। मिलिट्री रडार सिस्टम मिसाइलों का मार्गदर्शन करते हैं। कारों का अनुकूली क्रूज़ कंट्रोल आगे की कार तक दूरी मापने के लिए लघु रडार का उपयोग करता है।',
+      facts: [
+        { label: 'दूरी', value: 'c·Δt/2' },
+        { label: 'दिगंश', value: 'θ' },
+        { label: 'डॉप्लर', value: 'Δf ∝ v' },
+      ],
+    },
+    'antenna': {
+      title: 'एंटीना विकिरण',
+      subtitle: 'त्रिकोणमिति से सिग्नल बीम करना',
+      category: 'दूरसंचार',
+      description: 'फेज़्ड ऐरे बिना घुमाए रेडियो बीम को निर्देशित करता है — प्रत्येक तत्व के फेज को शिफ्ट करके ताकि तरंगें चुनी हुई दिशा में जुड़ें। विकिरण पैटर्न शुद्ध त्रिकोणमिति है। तत्वों की संख्या और फेज स्टेप बदलें।',
+      realLife: '5G बेस स्टेशन फेज़्ड ऐरे का उपयोग करके सिग्नल सीधे उपयोगकर्ताओं तक बीम-फ़ॉर्म करते हैं। फाइटर जेट पर आधुनिक रडार सिस्टम बीम को प्रकाश की गति पर इलेक्ट्रॉनिक रूप से घुमाते हैं। सैटलाइट टीवी डिश त्रिकोणमितीय वक्रों से आकार वाले परवलयिक परावर्तकों का उपयोग करती हैं।',
+      facts: [
+        { label: 'पैटर्न', value: 'sin θ / θ' },
+        { label: 'गेन', value: 'दिशात्मक' },
+        { label: 'फेज़्ड ऐरे', value: 'फेज शिफ्ट' },
+      ],
+    },
+    'solar': {
+      title: 'सौर ट्रैकिंग',
+      subtitle: 'आसमान में सूरज का पीछा',
+      category: 'ऊर्जा',
+      description: 'सौर ट्रैकर आसमान में सूरज का पीछा करते हैं ताकि पैनल आने वाली रोशनी के लंबवत रहें, ऊर्जा कैप्चर में लगभग 30% वृद्धि होती है। सूरज की ऊंचाई कोण अक्षांश, दिन का समय और सौर झुकाव से गणना होती है — सभी त्रिकोणमितीय फलन।',
+      realLife: 'बड़े सौर फार्म डुअल-एक्सिस ट्रैकरों का उपयोग करते हैं, जो फिक्स्ड पैनलों से 30-40% अधिक बिजली बनाते हैं। मंगल रोवर के सौर पैनल चार्जिंग अनुकूलित करने के लिए त्रिकोणमितीय सूरज-स्थिति एल्गोरिदम का उपयोग करते हैं। सनडायल — सबसे पुराने सौर उपकरण — उसी ऊंचाई कोण गणित का उपयोग करते हैं।',
+      facts: [
+        { label: 'ऊंचाई', value: 'sin δ' },
+        { label: 'दिगंश', value: 'tan⁻¹' },
+        { label: 'लाभ', value: '~30%' },
+      ],
+    },
+  },
+};
+
+const translations: Record<Lang, Translation> = { en, hi };
+
+
+type AnimationFrame = (ctx: CanvasRenderingContext2D, t: number, width: number, height: number) => void;
+
+/**
+ * Sets up a requestAnimationFrame loop on a canvas, handling DPR scaling and resize.
+ * The draw callback receives a time value in seconds and the CSS pixel dimensions.
+ */
+function useCanvasAnimation(draw: AnimationFrame, deps: React.DependencyList = []) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const drawRef = useRef(draw);
+  drawRef.current = draw;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let raf = 0;
+    let start = performance.now();
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const loop = (now: number) => {
+      const t = (now - start) / 1000;
+      const rect = canvas.getBoundingClientRect();
+      drawRef.current(ctx, t, rect.width, rect.height);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return canvasRef;
+}
+
+
+type Props = {
+  className?: string;
+};
+
+/**
+ * Full-bleed animated background. Four radial color blobs sit in the corners and
+ * slowly drift + pulse, creating the effect of color "seeping" toward the center.
+ */
+function AnimatedBackground({ className = '' }: Props) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const corners = useMemo(
+    () =>
+      isDark
+        ? [
+            'rgba(56,189,248,0.55)',
+            'rgba(244,114,182,0.50)',
+            'rgba(250,204,21,0.45)',
+            'rgba(52,211,153,0.50)',
+          ]
+        : [
+            'rgba(56,189,248,0.40)',
+            'rgba(244,114,182,0.35)',
+            'rgba(250,204,21,0.35)',
+            'rgba(52,211,153,0.35)',
+          ],
+    [isDark],
+  );
+
+  const seeds = useMemo(
+    () =>
+      corners.map((_, i) => ({
+        phase: i * 1.7,
+        speed: 0.18 + i * 0.03,
+        amp: 6 + i * 2,
+      })),
+    [corners],
+  );
+
+  return (
+    <div
+      className={`pointer-events-none fixed inset-0 -z-10 overflow-hidden transition-colors duration-500 ${isDark ? 'bg-[#05070f]' : 'bg-[#f0f3f9]'} ${className}`}
+    >
+      {/* base vignette */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-500 ${isDark ? 'opacity-100' : 'opacity-40'}`}
+        style={{
+          background: isDark
+            ? 'radial-gradient(ellipse at center, rgba(15,23,42,0.2), rgba(5,7,15,0.95) 70%)'
+            : 'radial-gradient(ellipse at center, rgba(255,255,255,0.3), rgba(240,243,249,0.6) 70%)',
+        }}
+      />
+
+      {corners.map((color, i) => {
+        const s = seeds[i];
+        const positions: [string, string][] = [
+          ['0%', '0%'],
+          ['100%', '0%'],
+          ['100%', '100%'],
+          ['0%', '100%'],
+        ];
+        const [left, top] = positions[i];
+        return (
+          <div
+            key={i}
+            className="absolute rounded-full blur-[80px] mix-blend-screen will-change-transform"
+            style={{
+              left,
+              top,
+              width: '60vmax',
+              height: '60vmax',
+              transform: `translate(-50%,-50%)`,
+              background: `radial-gradient(circle, ${color} 0%, transparent 65%)`,
+              animation: `seep-${i} ${14 + i * 2}s ease-in-out infinite`,
+            }}
+          />
+        );
+      })}
+
+      <style>{`
+        @keyframes seep-0 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-42%,-42%) scale(1.12)} }
+        @keyframes seep-1 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-58%,-42%) scale(1.15)} }
+        @keyframes seep-2 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-58%,-58%) scale(1.1)} }
+        @keyframes seep-3 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-42%,-58%) scale(1.18)} }
+      `}</style>
+
+      {/* fine grid overlay */}
+      <div
+        className="absolute inset-0"
+        style={{
+          opacity: isDark ? 0.04 : 0.06,
+          backgroundImage:
+            'linear-gradient(rgba(0,0,0,0.4) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.4) 1px,transparent 1px)',
+          backgroundSize: '48px 48px',
+        }}
+      />
+    </div>
+  );
+}
+
+
+/**
+ * Idle background effect: floating sine waves and rotating unit-circle
+ * ghosts drift across the screen behind everything else. Subtle and slow.
+ */
+function IdleBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let raf = 0;
+    let start = performance.now();
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Pre-generate floating wave configs
+    const waves = Array.from({ length: 5 }, (_, i) => ({
+      amp: 30 + i * 20,
+      freq: 0.005 + i * 0.002,
+      speed: 0.3 + i * 0.15,
+      yOff: 0.2 + i * 0.15,
+      hue: 190 + i * 30,
+      phase: i * 1.3,
+    }));
+
+    const circles = Array.from({ length: 4 }, (_, i) => ({
+      x: 0.15 + i * 0.25,
+      y: 0.3 + (i % 2) * 0.4,
+      r: 40 + i * 25,
+      speed: 0.2 + i * 0.1,
+      hue: 200 + i * 40,
+    }));
+
+    const loop = (now: number) => {
+      const t = (now - start) / 1000;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      ctx.clearRect(0, 0, w, h);
+
+      // Floating sine waves
+      for (const wave of waves) {
+        ctx.strokeStyle = `hsla(${wave.hue}, 70%, 60%, 0.06)`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let x = 0; x <= w; x += 3) {
+          const y = h * wave.yOff + wave.amp * Math.sin(wave.freq * x + t * wave.speed + wave.phase);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      // Rotating unit-circle ghosts
+      for (const c of circles) {
+        const cx = w * c.x + Math.sin(t * c.speed * 0.5) * 30;
+        const cy = h * c.y + Math.cos(t * c.speed * 0.5) * 20;
+        const rot = t * c.speed;
+
+        ctx.strokeStyle = `hsla(${c.hue}, 70%, 60%, 0.05)`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cx, cy, c.r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // radius line
+        const px = cx + c.r * Math.cos(rot);
+        const py = cy + c.r * Math.sin(rot);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+
+        // dot
+        ctx.fillStyle = `hsla(${c.hue}, 70%, 60%, 0.08)`;
+        ctx.beginPath();
+        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="pointer-events-none fixed inset-0 -z-[5]"
+    />
+  );
+}
+
+
+type Pt = { x: number; y: number };
+
+/**
+ * Trigonometric cursor tracer: a unit circle follows the mouse with
+ * a rotating radius vector, sin/cos projections, and a trailing
+ * sine-wave ribbon. Pure canvas, screen blend mode.
+ */
+function CursorTracer() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouseRef = useRef<Pt>({ x: -100, y: -100 });
+  const trailRef = useRef<Pt[]>([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let raf = 0;
+    let start = performance.now();
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const onMove = (e: MouseEvent) => {
+      mouseRef.current = { x: e.clientX, y: e.clientY };
+    };
+    window.addEventListener('mousemove', onMove);
+
+    const loop = (now: number) => {
+      const t = (now - start) / 1000;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      ctx.clearRect(0, 0, w, h);
+
+      const m = mouseRef.current;
+      trailRef.current.push({ x: m.x, y: m.y });
+      if (trailRef.current.length > 35) trailRef.current.shift();
+
+      const trail = trailRef.current;
+
+      // --- Trailing sine-wave ribbon ---
+      for (let i = 0; i < trail.length - 1; i++) {
+        const p = trail[i];
+        const next = trail[i + 1];
+        const age = (trail.length - i) / trail.length;
+        const ang = Math.atan2(next.y - p.y, next.x - p.x);
+        const perp = ang + Math.PI / 2;
+        const wave = Math.sin(t * 4 + i * 0.5) * 10 * age;
+        const offX = Math.cos(perp) * wave;
+        const offY = Math.sin(perp) * wave;
+
+        const hue = (i * 10 + t * 40) % 360;
+        const alpha = age * 0.4;
+        ctx.strokeStyle = `hsla(${hue}, 85%, 65%, ${alpha})`;
+        ctx.lineWidth = 2 * age;
+        ctx.beginPath();
+        ctx.moveTo(p.x + offX, p.y + offY);
+        ctx.lineTo(next.x + offX, next.y + offY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(p.x - offX, p.y - offY);
+        ctx.lineTo(next.x - offX, next.y - offY);
+        ctx.stroke();
+      }
+
+      // --- Unit circle at cursor ---
+      if (m.x > -50) {
+        const R = 28;
+        const cx = m.x;
+        const cy = m.y;
+        const angle = t * 1.5;
+        const px = cx + R * Math.cos(angle);
+        const py = cy + R * Math.sin(angle);
+
+        // Glow behind circle
+        const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 1.8);
+        glow.addColorStop(0, 'rgba(56,189,248,0.25)');
+        glow.addColorStop(0.5, 'rgba(244,114,182,0.12)');
+        glow.addColorStop(1, 'rgba(56,189,248,0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R * 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Circle outline
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Axes
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx - R - 6, cy);
+        ctx.lineTo(cx + R + 6, cy);
+        ctx.moveTo(cx, cy - R - 6);
+        ctx.lineTo(cx, cy + R + 6);
+        ctx.stroke();
+
+        // Angle arc
+        ctx.strokeStyle = 'rgba(244,114,182,0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 10, 0, angle);
+        ctx.stroke();
+
+        // Radius vector
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+
+        // cos projection (horizontal, cyan)
+        ctx.strokeStyle = 'rgba(56,189,248,0.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px, cy);
+        ctx.stroke();
+
+        // sin projection (vertical, pink)
+        ctx.strokeStyle = 'rgba(244,114,182,0.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px, cy);
+        ctx.lineTo(cx, cy);
+        ctx.stroke();
+
+        // Point on circle
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Center dot
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pulsing outer ring
+        const pulseR = R + 6 + Math.sin(t * 2.5) * 4;
+        ctx.strokeStyle = `rgba(56,189,248,${0.15 + Math.sin(t * 2.5) * 0.08})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', onMove);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="pointer-events-none fixed inset-0 z-[100]"
+      style={{ mixBlendMode: 'screen' }}
+    />
+  );
+}
+
+
+type Props = {
+  children: ReactNode;
+  className?: string;
+  hover?: boolean;
+};
+
+/**
+ * Frosted glass surface with a subtle gradient border and inner highlight.
+ * Adapts to light/dark theme.
+ */
+function GlassCard({ children, className = '', hover = false }: Props) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  return (
+    <div
+      className={[
+        'relative rounded-2xl border backdrop-blur-xl transition-colors duration-500',
+        isDark
+          ? 'border-white/10 bg-white/[0.04] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6)]'
+          : 'border-black/10 bg-white/40 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.15)]',
+        'before:absolute before:inset-0 before:rounded-2xl before:pointer-events-none',
+        isDark
+          ? 'before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-transparent'
+          : 'before:bg-gradient-to-br before:from-white/60 before:via-transparent before:to-transparent',
+        hover ? 'transition-transform duration-300 hover:-translate-y-1' : '',
+        className,
+      ].join(' ')}
+    >
+      {children}
+    </div>
+  );
+}
+
+
+type Props = {
+  index: number;
+  total: number;
+  title: string;
+  subtitle: string;
+  category: string;
+  accent: string;
+  children: ReactNode;
+  visual: ReactNode;
+  facts?: { label: string; value: string }[];
+  realLife?: string;
+  realLifeLabel: string;
+};
+
+function SlideShell({
+  index, total, title, subtitle, category, accent, children, visual, facts, realLife, realLifeLabel,
+}: Props) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const textMain = isDark ? 'text-white' : 'text-slate-900';
+  const textSub = isDark ? 'text-white/50' : 'text-slate-500';
+  const textBody = isDark ? 'text-white/70' : 'text-slate-700';
+  const textMuted = isDark ? 'text-white/40' : 'text-slate-400';
+  const factLabel = isDark ? 'text-white/40' : 'text-slate-400';
+  const factValue = isDark ? 'text-white' : 'text-slate-900';
+  const factBorder = isDark ? 'border-white/10 bg-white/[0.03]' : 'border-black/10 bg-black/[0.02]';
+  const realLifeBg = isDark ? 'bg-white/[0.04] border-white/10 backdrop-blur-xl' : 'bg-white/40 border-black/10 backdrop-blur-xl';
+
+  return (
+    <div className="grid h-full w-full grid-cols-1 gap-6 lg:grid-cols-[1fr_1.1fr] lg:gap-8">
+      {/* Left: text */}
+      <div className="flex flex-col justify-center gap-5">
+        <div className="flex items-center gap-3">
+          <span
+            className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
+            style={{ background: `${accent}22`, color: accent, border: `1px solid ${accent}44` }}
+          >
+            {category}
+          </span>
+          <span className={`text-xs font-medium ${textMuted}`}>
+            {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+          </span>
+        </div>
+
+        <div>
+          <h2 className={`font-display text-3xl font-bold leading-tight tracking-tight ${textMain} sm:text-4xl lg:text-5xl`}>
+            <span className="gradient-text-cyan">{title}</span>
+          </h2>
+          <p className={`mt-2 text-base ${textSub} sm:text-lg`}>{subtitle}</p>
+        </div>
+
+        <div className={`text-sm leading-relaxed ${textBody} sm:text-base`}>
+          {children}
+        </div>
+
+        {/* Real-life context */}
+        {realLife && (
+          <div className={`rounded-xl border px-4 py-3 ${realLifeBg}`}>
+            <div className="mb-1.5 flex items-center gap-2">
+              <Building2 className="h-4 w-4" style={{ color: accent }} />
+              <span className={`text-[11px] font-semibold uppercase tracking-wider`} style={{ color: accent }}>
+                {realLifeLabel}
+              </span>
+            </div>
+            <p className={`text-xs leading-relaxed ${textBody} sm:text-sm`}>{realLife}</p>
+          </div>
+        )}
+
+        {facts && facts.length > 0 && (
+          <div className="flex flex-wrap gap-2.5">
+            {facts.map((f) => (
+              <div
+                key={f.label}
+                className={`rounded-xl border px-3.5 py-2 ${factBorder}`}
+              >
+                <div className={`text-[10px] uppercase tracking-wider ${factLabel}`}>{f.label}</div>
+                <div className={`text-sm font-semibold ${factValue}`}>{f.value}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Right: visual */}
+      <div className="flex items-center justify-center">
+        <GlassCard className="h-full w-full overflow-hidden p-1">
+          {visual}
+        </GlassCard>
+      </div>
+    </div>
+  );
+}
+
+
+type Props = {
+  t: Translation;
+  lang: Lang;
+  onEnter: () => void;
+};
+
+function LandingPage({ t, lang, onEnter }: Props) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  // Hero canvas: rotating epicycles drawing a sine wave
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let raf = 0;
+    let start = performance.now();
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const loop = (now: number) => {
+      const time = (now - start) / 1000;
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w * 0.22;
+      const cy = h / 2;
+      const baseR = Math.min(w, h) * 0.12;
+
+      // Draw epicycles
+      let x = cx;
+      let y = cy;
+      const harmonics = 5;
+      for (let k = 1; k <= harmonics; k++) {
+        const n = 2 * k - 1;
+        const r = (baseR * 4) / (n * Math.PI);
+        const ang = n * time * 0.6;
+        const x2 = x + r * Math.cos(ang);
+        const y2 = y + r * Math.sin(ang);
+
+        ctx.strokeStyle = `rgba(56,189,248,${0.15 / k})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = `rgba(244,114,182,${0.4 / k})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        x = x2;
+        y = y2;
+      }
+
+      // Connector to wave
+      const waveX = w * 0.38;
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(waveX, y);
+      ctx.stroke();
+
+      // Draw the square wave being built
+      ctx.strokeStyle = 'rgba(251,191,36,0.7)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      const samples = 180;
+      for (let i = 0; i <= samples; i++) {
+        const u = i / samples;
+        const px = waveX + u * (w - waveX - 20);
+        let sum = 0;
+        for (let k = 1; k <= harmonics; k++) {
+          const n = 2 * k - 1;
+          sum += (4 / (n * Math.PI)) * Math.sin(n * (u * 4 * Math.PI - time * 1.2));
+        }
+        const py = cy + sum * baseR;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // Glowing tip
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, 12);
+      grad.addColorStop(0, '#fbbf24');
+      grad.addColorStop(1, 'rgba(251,191,36,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  const icons = [Atom, Waves, Radio, Cog, Sun];
+
+  return (
+    <div className={`relative min-h-screen w-full overflow-hidden transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Hero canvas */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 h-full w-full"
+        style={{ opacity: 0.5 }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        {/* Badge */}
+        <div
+          className="mb-6 flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/5 px-4 py-1.5 backdrop-blur-md transition-all duration-500"
+          style={{ animation: 'fadeDown 0.6s ease-out 0.1s both' }}
+        >
+          <Sparkles className="h-4 w-4 text-cyan-300" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-cyan-200">
+            {t.landing.badge}
+          </span>
+        </div>
+
+        {/* Title */}
+        <h1
+          className="font-display text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl"
+          style={{ animation: 'fadeUp 0.7s ease-out 0.2s both' }}
+        >
+          <span className="bg-gradient-to-r from-cyan-300 via-violet-300 to-pink-300 bg-clip-text text-transparent">
+            {t.landing.title1}
+          </span>
+        </h1>
+        <h2
+          className="font-display mt-1 text-3xl font-light tracking-wide text-white/80 sm:text-5xl lg:text-6xl"
+          style={{ animation: 'fadeUp 0.7s ease-out 0.35s both' }}
+        >
+          <span className="bg-gradient-to-r from-amber-200 via-rose-300 to-cyan-300 bg-clip-text text-transparent">
+            {t.landing.title2}
+          </span>
+        </h2>
+
+        {/* Subtitle */}
+        <p
+          className="mt-6 max-w-2xl text-base leading-relaxed text-white/60 sm:text-lg"
+          style={{ animation: 'fadeUp 0.7s ease-out 0.5s both' }}
+        >
+          {t.landing.subtitle}
+        </p>
+
+        {/* CTA */}
+        <button
+          onClick={onEnter}
+          className="group mt-10 flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition-all duration-300 hover:border-cyan-400/40 hover:bg-cyan-400/10 hover:shadow-[0_0_30px_-5px_rgba(56,189,248,0.4)]"
+          style={{ animation: 'fadeUp 0.7s ease-out 0.65s both' }}
+        >
+          {t.landing.cta}
+          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </button>
+
+        {/* Feature pills */}
+        <div
+          className="mt-14 flex flex-wrap items-center justify-center gap-4"
+          style={{ animation: 'fadeUp 0.7s ease-out 0.8s both' }}
+        >
+          {t.landing.features.map((f, i) => {
+            const Icon = icons[i] || Atom;
+            return (
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3.5 backdrop-blur-md"
+              >
+                <Icon className="h-5 w-5 text-cyan-300" />
+                <div className="text-left">
+                  <div className="font-display text-sm font-semibold text-white">{f.title}</div>
+                  <div className="text-xs text-white/50">{f.desc}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Scroll hint */}
+        <div
+          className="absolute bottom-8 flex flex-col items-center gap-2 text-white/30"
+          style={{ animation: 'fadeUp 0.7s ease-out 1s both' }}
+        >
+          <span className="text-xs uppercase tracking-widest">{t.landing.scroll}</span>
+          <div className="h-8 w-px bg-gradient-to-b from-white/30 to-transparent" />
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+
+function UnitCircleSlide() {
+  const [angle, setAngle] = useState(45);
+  const [playing, setPlaying] = useState(true);
+  const stateRef = useRef({ angle: 45, playing: true });
+  stateRef.current = { angle, playing };
+
+  const canvasRef = useCanvasAnimation((ctx, t, w, h) => {
+    const cx = w / 2;
+    const cy = h / 2;
+    const R = Math.min(w, h) * 0.32;
+
+    let a = stateRef.current.angle;
+    if (stateRef.current.playing) {
+      a = (t * 40) % 360;
+      setAngle(a);
+    }
+    const rad = (a * Math.PI) / 180;
+    const px = cx + R * Math.cos(rad);
+    const py = cy - R * Math.sin(rad);
+
+    ctx.clearRect(0, 0, w, h);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, cy); ctx.lineTo(w, cy);
+    ctx.moveTo(cx, 0); ctx.lineTo(cx, h);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(56,189,248,0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(244,114,182,0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 28, 0, -rad, true);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy); ctx.lineTo(px, py);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#f472b6';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(px, py); ctx.lineTo(px, cy);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(px, cy); ctx.lineTo(cx, cy);
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(px, py, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.font = '13px ui-sans-serif, system-ui';
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText(`cos θ = ${Math.cos(rad).toFixed(3)}`, cx + R * 0.35, cy + 18);
+    ctx.fillStyle = '#f472b6';
+    ctx.fillText(`sin θ = ${Math.sin(rad).toFixed(3)}`, px + 8, py - 8);
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText(`θ = ${a.toFixed(0)}°`, cx + 6, cy - 8);
+  });
+
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full" />
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-md">
+        <button
+          onClick={() => setPlaying(!playing)}
+          className="text-xs font-semibold text-white/80 hover:text-white"
+        >
+          {playing ? 'Pause' : 'Play'}
+        </button>
+        <input
+          type="range"
+          min={0}
+          max={360}
+          value={angle}
+          onChange={(e) => { setPlaying(false); setAngle(+e.target.value); }}
+          className="h-1 w-40 cursor-pointer appearance-none rounded-full bg-white/20 accent-cyan-400"
+        />
+      </div>
+    </div>
+  );
+}
+
+
+function WaveSuperpositionSlide() {
+  const [f1, setF1] = useState(1.0);
+  const [f2, setF2] = useState(1.1);
+  const ref = useRef({ f1, f2 });
+  ref.current = { f1, f2 };
+
+  const canvasRef = useCanvasAnimation((ctx, t, w, h) => {
+    const { f1, f2 } = ref.current;
+    const mid = h / 2;
+    const amp = h * 0.14;
+    ctx.clearRect(0, 0, w, h);
+
+    const drawWave = (fn: (x: number) => number, color: string, width: number, alpha: number) => {
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 2) {
+        const u = x / w;
+        const y = mid + fn(u);
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    };
+
+    // midline
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, mid); ctx.lineTo(w, mid); ctx.stroke();
+
+    drawWave((u) => amp * Math.sin(2 * Math.PI * (f1 * u - t * 0.3)), '#f472b6', 2, 0.55);
+    drawWave((u) => amp * 0.8 * Math.sin(2 * Math.PI * (f2 * u - t * 0.3)), '#38bdf8', 2, 0.55);
+
+    // sum
+    drawWave(
+      (u) =>
+        amp * Math.sin(2 * Math.PI * (f1 * u - t * 0.3)) +
+        amp * 0.8 * Math.sin(2 * Math.PI * (f2 * u - t * 0.3)),
+      '#fbbf24', 3, 1,
+    );
+
+    // labels
+    ctx.font = '12px ui-sans-serif, system-ui';
+    ctx.fillStyle = '#f472b6'; ctx.fillText('Wave 1', 12, 20);
+    ctx.fillStyle = '#38bdf8'; ctx.fillText('Wave 2', 12, 36);
+    ctx.fillStyle = '#fbbf24'; ctx.fillText('Combined', 12, 52);
+  });
+
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full" />
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-4 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-md">
+        <label className="flex items-center gap-2 text-xs text-pink-300">
+          f₁
+          <input type="range" min={0.5} max={3} step={0.05} value={f1}
+            onChange={(e) => setF1(+e.target.value)}
+            className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-white/20 accent-pink-400" />
+        </label>
+        <label className="flex items-center gap-2 text-xs text-cyan-300">
+          f₂
+          <input type="range" min={0.5} max={3} step={0.05} value={f2}
+            onChange={(e) => setF2(+e.target.value)}
+            className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-white/20 accent-cyan-400" />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+
+function FourierSlide() {
+  const [harmonics, setHarmonics] = useState(8);
+  const ref = useRef(harmonics);
+  ref.current = harmonics;
+
+  const canvasRef = useCanvasAnimation((ctx, t, w, h) => {
+    const N = ref.current;
+    const cx = w * 0.28;
+    const cy = h / 2;
+    const baseR = Math.min(w, h) * 0.13;
+    ctx.clearRect(0, 0, w, h);
+
+    // Build square wave via epicycles
+    let x = cx;
+    let y = cy;
+    const trail: [number, number][] = [];
+
+    for (let k = 1; k <= N; k++) {
+      const n = 2 * k - 1;
+      const r = (baseR * 4) / (n * Math.PI);
+      const ang = n * t * 0.8;
+      const x2 = x + r * Math.cos(ang);
+      const y2 = y + r * Math.sin(ang);
+
+      ctx.strokeStyle = 'rgba(251,191,36,0.25)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(251,191,36,0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke();
+
+      x = x2; y = y2;
+    }
+
+    // connector to wave
+    const waveX = w * 0.42;
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(waveX, y); ctx.stroke();
+
+    // draw square wave trace
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    const samples = 200;
+    for (let i = 0; i <= samples; i++) {
+      const u = i / samples;
+      const px = waveX + u * (w - waveX - 10);
+      let sum = 0;
+      for (let k = 1; k <= N; k++) {
+        const n = 2 * k - 1;
+        sum += (4 / (n * Math.PI)) * Math.sin(n * (u * 2 * Math.PI * 2 - t * 1.6));
+      }
+      const py = cy + sum * baseR;
+      trail.push([px, py]);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // moving dot at the wave front aligned with epicycles
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(waveX, y, 4, 0, Math.PI * 2); ctx.fill();
+
+    ctx.font = '12px ui-sans-serif, system-ui';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText(`${N} harmonics`, 12, 20);
+  });
+
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full" />
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-md">
+        <span className="text-xs font-semibold text-amber-300">Harmonics</span>
+        <input type="range" min={1} max={25} value={harmonics}
+          onChange={(e) => setHarmonics(+e.target.value)}
+          className="h-1 w-40 cursor-pointer appearance-none rounded-full bg-white/20 accent-amber-400" />
+        <span className="w-6 text-xs text-white/70">{harmonics}</span>
+      </div>
+    </div>
+  );
+}
+
+
+function PendulumSlide() {
+  const [length, setLength] = useState(0.5);
+  const [gravity, setGravity] = useState(9.81);
+  const ref = useRef({ length, gravity });
+  ref.current = { length, gravity };
+
+  const canvasRef = useCanvasAnimation((ctx, t, w, h) => {
+    const { length: L, gravity: g } = ref.current;
+    const pivotX = w / 2;
+    const pivotY = h * 0.12;
+    const maxLen = h * 0.6;
+    const len = maxLen * L;
+    const omega = Math.sqrt(g / (L * 1.5)) * 1.2;
+    const theta = 0.6 * Math.cos(omega * t);
+    const bobX = pivotX + len * Math.sin(theta);
+    const bobY = pivotY + len * Math.cos(theta);
+
+    ctx.clearRect(0, 0, w, h);
+
+    // arc trail
+    ctx.strokeStyle = 'rgba(52,211,153,0.15)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.arc(pivotX, pivotY, len, Math.PI / 2 - 0.6, Math.PI / 2 + 0.6);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // rod
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(pivotX, pivotY); ctx.lineTo(bobX, bobY); ctx.stroke();
+
+    // pivot
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(pivotX, pivotY, 4, 0, Math.PI * 2); ctx.fill();
+
+    // bob with glow
+    const grad = ctx.createRadialGradient(bobX, bobY, 2, bobX, bobY, 26);
+    grad.addColorStop(0, '#34d399');
+    grad.addColorStop(1, 'rgba(52,211,153,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(bobX, bobY, 26, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#34d399';
+    ctx.beginPath(); ctx.arc(bobX, bobY, 12, 0, Math.PI * 2); ctx.fill();
+
+    // angle arc
+    ctx.strokeStyle = 'rgba(251,191,36,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(pivotX, pivotY, 30, Math.PI / 2, Math.PI / 2 + theta, theta < 0);
+    ctx.stroke();
+
+    // period readout
+    const period = 2 * Math.PI * Math.sqrt((L * 1.5) / g);
+    ctx.font = '13px ui-sans-serif, system-ui';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.fillText(`T = 2π√(L/g) = ${period.toFixed(2)} s`, 12, 24);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillText(`θ = ${(theta * 180 / Math.PI).toFixed(1)}°`, 12, 42);
+  });
+
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full" />
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-4 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-md">
+        <label className="flex items-center gap-2 text-xs text-emerald-300">
+          Length
+          <input type="range" min={0.2} max={1} step={0.05} value={length}
+            onChange={(e) => setLength(+e.target.value)}
+            className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-white/20 accent-emerald-400" />
+        </label>
+        <label className="flex items-center gap-2 text-xs text-amber-300">
+          Gravity
+          <input type="range" min={1.6} max={25} step={0.1} value={gravity}
+            onChange={(e) => setGravity(+e.target.value)}
+            className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-white/20 accent-amber-400" />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+
+function LissajousSlide() {
+  const [a, setA] = useState(3);
+  const [b, setB] = useState(2);
+  const [phase, setPhase] = useState(90);
+  const ref = useRef({ a, b, phase });
+  ref.current = { a, b, phase };
+
+  const canvasRef = useCanvasAnimation((ctx, t, w, h) => {
+    const { a, b, phase } = ref.current;
+    const cx = w / 2;
+    const cy = h / 2;
+    const R = Math.min(w, h) * 0.36;
+    const d = (phase * Math.PI) / 180;
+    ctx.clearRect(0, 0, w, h);
+
+    // trail
+    ctx.strokeStyle = 'rgba(167,139,250,0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    const segs = 600;
+    for (let i = 0; i <= segs; i++) {
+      const u = (i / segs) * Math.PI * 2;
+      const x = cx + R * Math.sin(a * u + d);
+      const y = cy + R * Math.sin(b * u);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // animated moving dot
+    const u = (t * 0.6) % (Math.PI * 2);
+    const x = cx + R * Math.sin(a * u + d);
+    const y = cy + R * Math.sin(b * u);
+
+    // glow
+    const grad = ctx.createRadialGradient(x, y, 1, x, y, 20);
+    grad.addColorStop(0, '#a78bfa');
+    grad.addColorStop(1, 'rgba(167,139,250,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+
+    // partial trail behind dot
+    ctx.strokeStyle = '#a78bfa';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    const tail = 80;
+    for (let i = 0; i <= tail; i++) {
+      const uu = u - (i / tail) * 0.5;
+      const px = cx + R * Math.sin(a * uu + d);
+      const py = cy + R * Math.sin(b * uu);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    ctx.font = '13px ui-sans-serif, system-ui';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText(`a:${a}  b:${b}  δ:${phase}°`, 12, 20);
+  });
+
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full" />
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-md">
+        <label className="flex items-center gap-1 text-xs text-violet-300">a
+          <input type="range" min={1} max={9} value={a} onChange={(e) => setA(+e.target.value)}
+            className="h-1 w-16 cursor-pointer appearance-none rounded-full bg-white/20 accent-violet-400" />
+        </label>
+        <label className="flex items-center gap-1 text-xs text-violet-300">b
+          <input type="range" min={1} max={9} value={b} onChange={(e) => setB(+e.target.value)}
+            className="h-1 w-16 cursor-pointer appearance-none rounded-full bg-white/20 accent-violet-400" />
+        </label>
+        <label className="flex items-center gap-1 text-xs text-violet-300">δ°
+          <input type="range" min={0} max={360} value={phase} onChange={(e) => setPhase(+e.target.value)}
+            className="h-1 w-20 cursor-pointer appearance-none rounded-full bg-white/20 accent-violet-400" />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+
+function GearsSlide() {
+  const [speed, setSpeed] = useState(1);
+  const ref = useRef(speed);
+  ref.current = speed;
+
+  const canvasRef = useCanvasAnimation((ctx, t, w, h) => {
+    const sp = ref.current;
+    ctx.clearRect(0, 0, w, h);
+
+    const drawGear = (
+      cx: number, cy: number, teeth: number, radius: number, rot: number, color: string,
+    ) => {
+      const inner = radius * 0.78;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.beginPath();
+      for (let i = 0; i < teeth * 2; i++) {
+        const ang = (i / (teeth * 2)) * Math.PI * 2;
+        const r = i % 2 === 0 ? radius : inner;
+        const x = r * Math.cos(ang);
+        const y = r * Math.sin(ang);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = `${color}33`;
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // hub
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 0.25, 0, Math.PI * 2);
+      ctx.fillStyle = `${color}55`;
+      ctx.fill();
+      ctx.stroke();
+
+      // spokes
+      for (let i = 0; i < 4; i++) {
+        ctx.save();
+        ctx.rotate((i / 4) * Math.PI * 2);
+        ctx.beginPath();
+        ctx.moveTo(radius * 0.25, 0);
+        ctx.lineTo(inner, 0);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = `${color}88`;
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.restore();
+    };
+
+    const t1 = 12, t2 = 8;
+    const r1 = 70, r2 = (r1 * t2) / t1;
+    const cx1 = w * 0.35, cy1 = h / 2;
+    const cx2 = cx1 + r1 + r2 - 4;
+    const rot1 = t * sp * 0.5;
+    const rot2 = -rot1 * (t1 / t2);
+
+    drawGear(cx1, cy1, t1, r1, rot1, '#fb923c');
+    drawGear(cx2, cy1, t2, r2, rot2, '#38bdf8');
+
+    // ratio label
+    ctx.font = '13px ui-sans-serif, system-ui';
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText(`Gear ratio ${t1}:${t2} = ${(t1 / t2).toFixed(2)}`, 12, 24);
+    ctx.fillStyle = '#fb923c';
+    ctx.fillText(`ω₁ = ${(sp * 0.5).toFixed(2)} rad/s`, 12, 42);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText(`ω₂ = ${(sp * 0.5 * (t1 / t2)).toFixed(2)} rad/s`, 12, 60);
+  });
+
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full" />
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-md">
+        <span className="text-xs font-semibold text-orange-300">Drive speed</span>
+        <input type="range" min={0} max={4} step={0.1} value={speed}
+          onChange={(e) => setSpeed(+e.target.value)}
+          className="h-1 w-40 cursor-pointer appearance-none rounded-full bg-white/20 accent-orange-400" />
+      </div>
+    </div>
+  );
+}
+
+
+function CrankSlide() {
+  const [rpm, setRpm] = useState(60);
+  const ref = useRef(rpm);
+  ref.current = rpm;
+
+  const canvasRef = useCanvasAnimation((ctx, t, w, h) => {
+    const rpm = ref.current;
+    const omega = (rpm / 60) * 2 * Math.PI * 0.3; // scaled for visual
+    const theta = omega * t;
+
+    const cx = w * 0.25;
+    const cy = h / 2;
+    const r = Math.min(w, h) * 0.16; // crank radius
+    const L = r * 2.6; // connecting rod
+
+    const crankX = cx + r * Math.cos(theta);
+    const crankY = cy + r * Math.sin(theta);
+    const pistonX = cx + r + L; // approx; exact: r cosθ + √(L² - r²sin²θ)
+    const exactX = cx + r * Math.cos(theta) + Math.sqrt(Math.max(0, L * L - r * r * Math.sin(theta) ** 2));
+    const pistonY = cy;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // cylinder
+    const cylLeft = cx + r;
+    const cylRight = w - 20;
+    const cylH = r * 1.4;
+    ctx.fillStyle = 'rgba(34,211,238,0.08)';
+    ctx.fillRect(cylLeft, cy - cylH / 2, cylRight - cylLeft, cylH);
+    ctx.strokeStyle = 'rgba(34,211,238,0.4)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cylLeft, cy - cylH / 2, cylRight - cylLeft, cylH);
+
+    // crank circle
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+
+    // crank arm
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(crankX, crankY); ctx.stroke();
+
+    // connecting rod
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(crankX, crankY); ctx.lineTo(exactX, pistonY); ctx.stroke();
+
+    // crank pin
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(crankX, crankY, 5, 0, Math.PI * 2); ctx.fill();
+
+    // piston
+    ctx.fillStyle = '#22d3ee';
+    ctx.fillRect(exactX - 6, cy - cylH / 2 + 6, 18, cylH - 12);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(exactX - 6, cy - cylH / 2 + 6, 18, cylH - 12);
+
+    // center pivot
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill();
+
+    // stroke markers
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(cx + r, cy + cylH / 2 + 14); ctx.lineTo(cx + r, cy + cylH / 2 + 4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx + r + L, cy + cylH / 2 + 14); ctx.lineTo(cx + r + L, cy + cylH / 2 + 4); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = '12px ui-sans-serif, system-ui';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText(`Stroke = 2r = ${(2 * r).toFixed(0)}px`, cx, cy + cylH / 2 + 28);
+    ctx.fillText(`${rpm} RPM`, 12, 20);
+  });
+
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full" />
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-md">
+        <span className="text-xs font-semibold text-cyan-300">Engine speed</span>
+        <input type="range" min={10} max={300} step={10} value={rpm}
+          onChange={(e) => setRpm(+e.target.value)}
+          className="h-1 w-40 cursor-pointer appearance-none rounded-full bg-white/20 accent-cyan-400" />
+        <span className="w-12 text-xs text-white/70">{rpm} RPM</span>
+      </div>
+    </div>
+  );
+}
+
+
+type Blip = { angle: number; dist: number; life: number };
+
+function RadarSlide() {
+  const [speed, setSpeed] = useState(1);
+  const ref = useRef(speed);
+  ref.current = speed;
+  const blipsRef = useRef<Blip[]>([
+    { angle: 35, dist: 0.4, life: 0 },
+    { angle: 120, dist: 0.7, life: 0 },
+    { angle: 210, dist: 0.55, life: 0 },
+    { angle: 290, dist: 0.85, life: 0 },
+  ]);
+
+  const canvasRef = useCanvasAnimation((ctx, t, w, h) => {
+    const sp = ref.current;
+    const cx = w / 2;
+    const cy = h / 2;
+    const R = Math.min(w, h) * 0.42;
+    const sweep = (t * sp * 0.6) % (Math.PI * 2);
+    ctx.clearRect(0, 0, w, h);
+
+    // range rings
+    for (let i = 1; i <= 4; i++) {
+      ctx.strokeStyle = 'rgba(74,222,128,0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(cx, cy, (R * i) / 4, 0, Math.PI * 2); ctx.stroke();
+    }
+    // cross
+    ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy);
+    ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+
+    // sweep gradient
+    const g = ctx.createConicGradient ? ctx.createConicGradient(sweep, cx, cy) : null;
+    if (g) {
+      g.addColorStop(0, 'rgba(74,222,128,0.5)');
+      g.addColorStop(0.05, 'rgba(74,222,128,0.15)');
+      g.addColorStop(0.15, 'rgba(74,222,128,0)');
+      g.addColorStop(1, 'rgba(74,222,128,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+    }
+    // sweep line
+    ctx.strokeStyle = '#4ade80';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + R * Math.cos(sweep), cy + R * Math.sin(sweep)); ctx.stroke();
+
+    // blips — brighten when sweep passes
+    for (const b of blipsRef.current) {
+      const ba = (b.angle * Math.PI) / 180;
+      const bx = cx + R * b.dist * Math.cos(ba);
+      const by = cy + R * b.dist * Math.sin(ba);
+      let diff = Math.abs(((sweep - ba) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2));
+      if (diff > Math.PI) diff = Math.PI * 2 - diff;
+      const bright = Math.max(0, 1 - diff / 0.6);
+      b.life = Math.max(b.life * 0.96, bright);
+
+      const alpha = 0.2 + b.life * 0.8;
+      ctx.fillStyle = `rgba(74,222,128,${alpha})`;
+      ctx.beginPath(); ctx.arc(bx, by, 4 + b.life * 4, 0, Math.PI * 2); ctx.fill();
+
+      if (b.life > 0.3) {
+        ctx.fillStyle = `rgba(255,255,255,${b.life * 0.6})`;
+        ctx.font = '11px ui-sans-serif, system-ui';
+        ctx.fillText(`d=${(b.dist * 100).toFixed(0)}km`, bx + 8, by - 6);
+      }
+    }
+
+    ctx.font = '12px ui-sans-serif, system-ui';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText(`Azimuth ${(sweep * 180 / Math.PI).toFixed(0)}°`, 12, 20);
+  });
+
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full" />
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-md">
+        <span className="text-xs font-semibold text-green-300">Sweep speed</span>
+        <input type="range" min={0.2} max={3} step={0.1} value={speed}
+          onChange={(e) => setSpeed(+e.target.value)}
+          className="h-1 w-40 cursor-pointer appearance-none rounded-full bg-white/20 accent-green-400" />
+      </div>
+    </div>
+  );
+}
+
+
+function AntennaSlide() {
+  const [elements, setElements] = useState(5);
+  const [phase, setPhase] = useState(0);
+  const ref = useRef({ elements, phase });
+  ref.current = { elements, phase };
+
+  const canvasRef = useCanvasAnimation((ctx, t, w, h) => {
+    const { elements: N, phase } = ref.current;
+    const cy = h * 0.72;
+    const spacing = Math.min(w * 0.06, 40);
+    const startX = w / 2 - ((N - 1) * spacing) / 2;
+    ctx.clearRect(0, 0, w, h);
+
+    const d = (phase * Math.PI) / 180;
+    const freq = 0.04;
+    const time = t * 0.8;
+
+    // draw wavefronts from each element
+    for (let i = 0; i < N; i++) {
+      const ex = startX + i * spacing;
+      const elPhase = i * d;
+      for (let r = 10; r < w; r += 24) {
+        const wave = Math.sin(freq * r - time + elPhase);
+        const alpha = Math.max(0, wave) * 0.12 * (1 - r / w);
+        ctx.fillStyle = `rgba(248,113,113,${alpha})`;
+        ctx.beginPath();
+        ctx.arc(ex, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // combined field — sample grid
+    const step = 6;
+    for (let x = 0; x < w; x += step) {
+      for (let y = 0; y < cy; y += step) {
+        let sum = 0;
+        for (let i = 0; i < N; i++) {
+          const ex = startX + i * spacing;
+          const dist = Math.hypot(x - ex, y - cy);
+          const elPhase = i * d;
+          sum += Math.sin(freq * dist * 4 - time + elPhase) / Math.max(1, dist * 0.06);
+        }
+        const v = sum / N;
+        const a = Math.min(1, Math.abs(v) * 0.5);
+        if (v > 0) ctx.fillStyle = `rgba(248,113,113,${a})`;
+        else ctx.fillStyle = `rgba(56,189,248,${a})`;
+        ctx.fillRect(x, y, step, step);
+      }
+    }
+
+    // antenna elements
+    for (let i = 0; i < N; i++) {
+      const ex = startX + i * spacing;
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(ex - 2, cy - 18, 4, 18);
+      ctx.beginPath(); ctx.arc(ex, cy, 4, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // ground line
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+
+    ctx.font = '12px ui-sans-serif, system-ui';
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText(`${N} elements, phase ${phase}°`, 12, 20);
+  });
+
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full" />
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-4 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-md">
+        <label className="flex items-center gap-2 text-xs text-red-300">Elements
+          <input type="range" min={1} max={9} value={elements}
+            onChange={(e) => setElements(+e.target.value)}
+            className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-white/20 accent-red-400" />
+        </label>
+        <label className="flex items-center gap-2 text-xs text-red-300">Phase
+          <input type="range" min={0} max={180} value={phase}
+            onChange={(e) => setPhase(+e.target.value)}
+            className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-white/20 accent-red-400" />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+
+function SolarSlide() {
+  const [hour, setHour] = useState(12);
+  const [lat, setLat] = useState(35);
+  const ref = useRef({ hour, lat });
+  ref.current = { hour, lat };
+
+  const canvasRef = useCanvasAnimation((ctx, _t, w, h) => {
+    const { hour, lat } = ref.current;
+    ctx.clearRect(0, 0, w, h);
+
+    const groundY = h * 0.72;
+    const panelCx = w / 2;
+    const panelCy = groundY;
+    const panelLen = Math.min(w, h) * 0.18;
+
+    // sun angle from hour (6am–6pm mapped to 0–180°)
+    const sunAngle = ((hour - 6) / 12) * Math.PI; // 0..π
+    const sunR = Math.min(w, h) * 0.38;
+    const sunX = panelCx - Math.cos(sunAngle) * sunR;
+    const sunY = panelCy - Math.sin(sunAngle) * sunR;
+
+    // sky gradient
+    const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+    const elev = Math.sin(sunAngle);
+    sky.addColorStop(0, `rgba(15,23,42,${1 - elev * 0.4})`);
+    sky.addColorStop(1, `rgba(250,204,21,${elev * 0.15})`);
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, groundY);
+
+    // ground
+    ctx.fillStyle = 'rgba(34,197,94,0.12)';
+    ctx.fillRect(0, groundY, w, h - groundY);
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(w, groundY); ctx.stroke();
+
+    // sun
+    const sunGrad = ctx.createRadialGradient(sunX, sunY, 4, sunX, sunY, 40);
+    sunGrad.addColorStop(0, '#fde047');
+    sunGrad.addColorStop(0.5, '#facc15');
+    sunGrad.addColorStop(1, 'rgba(250,204,21,0)');
+    ctx.fillStyle = sunGrad;
+    ctx.beginPath(); ctx.arc(sunX, sunY, 40, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath(); ctx.arc(sunX, sunY, 14, 0, Math.PI * 2); ctx.fill();
+
+    // sun elevation angle (latitude-adjusted simplification)
+    const declination = 23.45 * Math.sin(((360 / 365) * (hour - 81) * Math.PI) / 180);
+    const latRad = (lat * Math.PI) / 180;
+    const hourAngle = (15 * (hour - 12) * Math.PI) / 180;
+    const elevation = Math.asin(
+      Math.sin(latRad) * Math.sin((declination * Math.PI) / 180) +
+      Math.cos(latRad) * Math.cos((declination * Math.PI) / 180) * Math.cos(hourAngle),
+    );
+    const tilt = elevation; // panel tracks sun elevation
+
+    // panel
+    ctx.save();
+    ctx.translate(panelCx, panelCy);
+    ctx.rotate(-tilt);
+    const panelGrad = ctx.createLinearGradient(0, -panelLen * 0.4, 0, 0);
+    panelGrad.addColorStop(0, '#1e3a8a');
+    panelGrad.addColorStop(1, '#1e40af');
+    ctx.fillStyle = panelGrad;
+    ctx.fillRect(-panelLen / 2, -panelLen * 0.4, panelLen, panelLen * 0.4);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(-panelLen / 2, -panelLen * 0.4, panelLen, panelLen * 0.4);
+    // grid cells
+    for (let i = 1; i < 4; i++) {
+      ctx.beginPath();
+      ctx.moveTo(-panelLen / 2 + (panelLen * i) / 4, -panelLen * 0.4);
+      ctx.lineTo(-panelLen / 2 + (panelLen * i) / 4, 0);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.moveTo(-panelLen / 2, -panelLen * 0.2);
+    ctx.lineTo(panelLen / 2, -panelLen * 0.2);
+    ctx.stroke();
+    // post
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(-3, 0, 6, 20);
+    ctx.restore();
+
+    // sun ray to panel
+    ctx.strokeStyle = `rgba(250,204,21,${Math.max(0, Math.sin(sunAngle)) * 0.6})`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath(); ctx.moveTo(sunX, sunY); ctx.lineTo(panelCx, panelCy - panelLen * 0.2); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // readout
+    const efficiency = Math.max(0, Math.sin(sunAngle)) * 100;
+    ctx.font = '12px ui-sans-serif, system-ui';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.fillText(`Sun elevation: ${(elevation * 180 / Math.PI).toFixed(1)}°`, 12, 20);
+    ctx.fillStyle = '#facc15';
+    ctx.fillText(`Panel tilt: ${(tilt * 180 / Math.PI).toFixed(1)}°`, 12, 38);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText(`Incident irradiance: ${efficiency.toFixed(0)}%`, 12, 56);
+  });
+
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvasRef} className="h-full w-full" />
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-4 rounded-full border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-md">
+        <label className="flex items-center gap-2 text-xs text-yellow-300">Hour
+          <input type="range" min={6} max={18} step={0.5} value={hour}
+            onChange={(e) => setHour(+e.target.value)}
+            className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-white/20 accent-yellow-400" />
+          <span className="w-10">{hour}:00</span>
+        </label>
+        <label className="flex items-center gap-2 text-xs text-yellow-300">Lat
+          <input type="range" min={-60} max={70} value={lat}
+            onChange={(e) => setLat(+e.target.value)}
+            className="h-1 w-20 cursor-pointer appearance-none rounded-full bg-white/20 accent-yellow-400" />
+          <span className="w-10">{lat}°</span>
+        </label>
+      </div>
+    </div>
+  );
+}
+
+
+const slideComponents: Record<string, React.ComponentType> = {
+  'unit-circle': UnitCircleSlide,
+  'wave-superposition': WaveSuperpositionSlide,
+  'fourier': FourierSlide,
+  'pendulum': PendulumSlide,
+  'lissajous': LissajousSlide,
+  'gears': GearsSlide,
+  'crank': CrankSlide,
+  'radar': RadarSlide,
+  'antenna': AntennaSlide,
+  'solar': SolarSlide,
+};
+
+function AppContent() {
+  const { theme, toggle: toggleTheme } = useTheme();
+  const [lang, setLang] = useState<Lang>('en');
+  const [view, setView] = useState<'landing' | 'slides'>('landing');
+  const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
+
+  const t = translations[lang];
+  const total = slides.length;
+  const meta = slides[index];
+  const slideT = t.slides[meta.id];
+  const SlideComponent = slideComponents[meta.id];
+
+  const isDark = theme === 'dark';
+  const textMain = isDark ? 'text-white' : 'text-slate-900';
+  const textSub = isDark ? 'text-white/40' : 'text-slate-500';
+  const headerBorder = isDark ? 'border-white/10' : 'border-black/10';
+  const headerBg = isDark ? 'bg-white/5' : 'bg-white/40';
+  const footerBg = isDark ? 'bg-black/40' : 'bg-white/50';
+  const footerBorder = isDark ? 'border-white/10' : 'border-black/10';
+  const navBtn = isDark
+    ? 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+    : 'border-black/10 bg-white/40 text-slate-600 hover:bg-white/60 hover:text-slate-900';
+  const dotIdle = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.2)';
+  const tooltipBg = isDark ? 'bg-black/80 text-white/70' : 'bg-white/90 text-slate-700';
+  const tooltipBorder = isDark ? 'border-white/10' : 'border-black/10';
+
+  const go = useCallback((dir: number) => {
+    setDirection(dir);
+    setIndex((i) => (i + dir + total) % total);
+  }, [total]);
+
+  const goTo = useCallback((i: number) => {
+    setDirection(i > index ? 1 : -1);
+    setIndex(i);
+    setDropdownOpen(false);
+  }, [index]);
+
+  const enterSlides = useCallback(() => {
+    setView('slides');
+    setIndex(0);
+  }, []);
+
+  const goLanding = useCallback(() => {
+    setView('landing');
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (view !== 'slides') return;
+      if (e.key === 'ArrowRight') go(1);
+      if (e.key === 'ArrowLeft') go(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [go, view]);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', onClick);
+    return () => window.removeEventListener('mousedown', onClick);
+  }, []);
+
+  if (view === 'landing') {
+    return (
+      <div className={`relative min-h-screen ${textMain}`}>
+        <AnimatedBackground />
+        <IdleBackground />
+        <CursorTracer />
+
+        {/* Top bar */}
+        <header className="relative z-20 flex items-center justify-between px-6 py-5 sm:px-10">
+          <div className="flex items-center gap-3">
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${headerBorder} ${headerBg} backdrop-blur-md`}>
+              <Compass className="h-5 w-5 text-cyan-400" />
+            </div>
+            <div>
+              <h1 className={`font-display text-sm font-bold tracking-wide ${textMain} sm:text-base`}>
+                {lang === 'en' ? 'Trigonometry in Motion' : 'गति में त्रिकोणमिति'}
+              </h1>
+              <p className={`text-[11px] ${textSub}`}>
+                {lang === 'en' ? 'The mathematics behind real machines' : 'वास्तविक मशीनों के पीछे का गणित'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Language toggle */}
+            <div ref={langRef} className="relative">
+              <button
+                onClick={() => setLangOpen(!langOpen)}
+                className={`flex items-center gap-1.5 rounded-full border ${headerBorder} ${headerBg} px-3 py-2 text-xs font-medium backdrop-blur-md transition hover:opacity-80`}
+              >
+                <Globe className="h-4 w-4 text-cyan-400" />
+                <span className={textMain}>{lang === 'en' ? 'EN' : 'हि'}</span>
+                <ChevronDown className={`h-3 w-3 ${textSub} transition-transform ${langOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {langOpen && (
+                <div
+                  className={`dropdown-fade absolute right-0 mt-2 w-36 overflow-hidden rounded-2xl border ${headerBorder} ${isDark ? 'bg-[#0a0e1a]/80' : 'bg-white/80'} shadow-2xl backdrop-blur-2xl`}
+                >
+                  {(['en', 'hi'] as Lang[]).map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => { setLang(l); setLangOpen(false); }}
+                      className={`dropdown-item flex w-full items-center gap-2 px-3 py-2.5 text-xs transition-all duration-200 hover:scale-[1.03] ${lang === l ? `${isDark ? 'bg-cyan-400/10' : 'bg-cyan-400/10'} font-semibold` : isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'} ${textMain}`}
+                      style={{ animationDelay: `${l === 'en' ? '0s' : '0.05s'}` }}
+                    >
+                      <Globe className="h-3.5 w-3.5 text-cyan-400" />
+                      {l === 'en' ? 'English' : 'हिंदी'}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`flex h-10 w-10 items-center justify-center rounded-full border ${headerBorder} ${headerBg} backdrop-blur-md transition hover:opacity-80`}
+              aria-label="Toggle theme"
+            >
+              {isDark ? <Sun className="h-5 w-5 text-amber-300" /> : <Moon className="h-5 w-5 text-indigo-500" />}
+            </button>
+          </div>
+        </header>
+
+        <LandingPage t={t} lang={lang} onEnter={enterSlides} />
+
+        {/* Footer */}
+        <footer className={`relative z-20 border-t ${footerBorder} px-6 py-4 text-center`}>
+          <p className={`text-sm font-medium ${textSub}`}>
+            {t.footer.madeBy}
+          </p>
+        </footer>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative flex min-h-screen flex-col ${textMain}`}>
+      <AnimatedBackground />
+      <IdleBackground />
+      <CursorTracer />
+
+      {/* Header */}
+      <header className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={goLanding}
+            className={`flex h-10 w-10 items-center justify-center rounded-xl border ${headerBorder} ${headerBg} backdrop-blur-md transition hover:opacity-80`}
+            aria-label="Home"
+          >
+            <Home className="h-5 w-5 text-cyan-400" />
+          </button>
+          <div>
+            <h1 className={`font-display text-sm font-bold tracking-wide ${textMain} sm:text-base`}>
+              {lang === 'en' ? 'Trigonometry in Motion' : 'गति में त्रिकोणमिति'}
+            </h1>
+            <p className={`text-[11px] ${textSub}`}>
+              {lang === 'en' ? 'The mathematics behind real machines' : 'वास्तविक मशीनों के पीछे का गणित'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Dropdown slide navigator */}
+          <div ref={dropdownRef} className="relative">
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className={`flex items-center gap-2 rounded-full border ${headerBorder} ${headerBg} px-4 py-2 text-xs font-medium backdrop-blur-md transition hover:opacity-80`}
+            >
+              <LayoutGrid className="h-4 w-4 text-cyan-400" />
+              <span className={`hidden sm:inline ${textMain}`}>{slideT.title}</span>
+              <span className={`sm:hidden ${textMain}`}>{index + 1}/{total}</span>
+              <ChevronDown className={`h-3 w-3 ${textSub} transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {dropdownOpen && (
+              <div
+                className={`dropdown-fade absolute right-0 mt-2 w-72 max-h-[60vh] overflow-y-auto rounded-2xl border ${headerBorder} ${isDark ? 'bg-[#0a0e1a]/80' : 'bg-white/80'} shadow-2xl backdrop-blur-2xl`}
+                style={{ boxShadow: isDark ? '0 12px 48px -8px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)' : '0 12px 48px -8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4)' }}
+              >
+                {slides.map((s, i) => (
+                  <button
+                    key={s.id}
+                    onClick={() => goTo(i)}
+                    className={`dropdown-item group flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-200 ${i === index ? (isDark ? 'bg-white/5' : 'bg-black/5') : isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'} hover:scale-[1.03] hover:shadow-lg`}
+                    style={{ animationDelay: `${i * 0.03}s` }}
+                  >
+                    <span
+                      className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-bold transition-transform duration-200 group-hover:scale-110"
+                      style={{ background: `${s.accent}22`, color: s.accent, border: `1px solid ${s.accent}44` }}
+                    >
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className={`truncate text-xs font-semibold ${textMain} transition-transform duration-200 group-hover:translate-x-0.5`}>{t.slides[s.id].title}</div>
+                      <div className={`truncate text-[10px] ${textSub}`}>{t.slides[s.id].category}</div>
+                    </div>
+                    {i === index && (
+                      <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full" style={{ background: s.accent }} />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Language toggle */}
+          <div ref={langRef} className="relative">
+            <button
+              onClick={() => setLangOpen(!langOpen)}
+              className={`flex items-center gap-1.5 rounded-full border ${headerBorder} ${headerBg} px-3 py-2 text-xs font-medium backdrop-blur-md transition hover:opacity-80`}
+            >
+              <Globe className="h-4 w-4 text-cyan-400" />
+              <span className={textMain}>{lang === 'en' ? 'EN' : 'हि'}</span>
+              <ChevronDown className={`h-3 w-3 ${textSub} transition-transform ${langOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {langOpen && (
+              <div
+                className={`dropdown-fade absolute right-0 mt-2 w-36 overflow-hidden rounded-2xl border ${headerBorder} ${isDark ? 'bg-[#0a0e1a]/80' : 'bg-white/80'} shadow-2xl backdrop-blur-2xl`}
+              >
+                {(['en', 'hi'] as Lang[]).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => { setLang(l); setLangOpen(false); }}
+                    className={`dropdown-item flex w-full items-center gap-2 px-3 py-2.5 text-xs transition-all duration-200 hover:scale-[1.03] ${lang === l ? `${isDark ? 'bg-cyan-400/10' : 'bg-cyan-400/10'} font-semibold` : isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'} ${textMain}`}
+                    style={{ animationDelay: `${l === 'en' ? '0s' : '0.05s'}` }}
+                  >
+                    <Globe className="h-3.5 w-3.5 text-cyan-400" />
+                    {l === 'en' ? 'English' : 'हिंदी'}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className={`flex h-10 w-10 items-center justify-center rounded-full border ${headerBorder} ${headerBg} backdrop-blur-md transition hover:opacity-80`}
+            aria-label="Toggle theme"
+          >
+            {isDark ? <Sun className="h-5 w-5 text-amber-300" /> : <Moon className="h-5 w-5 text-indigo-500" />}
+          </button>
+        </div>
+      </header>
+
+      {/* Slide area */}
+      <main className="relative z-10 flex-1 px-6 pb-28 sm:px-10">
+        <div
+          key={meta.id}
+          className="mx-auto h-full max-w-7xl animate-[slidein_0.5s_ease-out]"
+          style={{ animationName: 'slidein' }}
+        >
+          <SlideShell
+            index={index}
+            total={total}
+            title={slideT.title}
+            subtitle={slideT.subtitle}
+            category={slideT.category}
+            accent={meta.accent}
+            facts={slideT.facts}
+            realLife={slideT.realLife}
+            realLifeLabel={lang === 'en' ? 'Where It\u2019s Used in Real Life' : 'वास्तविक जीवन में उपयोग'}
+            visual={<SlideComponent />}
+          >
+            {slideT.description}
+          </SlideShell>
+        </div>
+      </main>
+
+      {/* Footer nav */}
+      <footer className="fixed inset-x-0 bottom-0 z-20 px-6 pb-5">
+        <div className={`mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-2xl border ${footerBorder} ${footerBg} px-4 py-3 backdrop-blur-xl`}>
+          <button
+            onClick={() => go(-1)}
+            className={`flex h-10 w-10 items-center justify-center rounded-full border ${navBtn} transition`}
+            aria-label={t.nav.prev}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+
+          {/* dots */}
+          <div className="flex flex-1 items-center justify-center gap-2 overflow-x-auto">
+            {slides.map((s, i) => (
+              <button
+                key={s.id}
+                onClick={() => goTo(i)}
+                className="group relative flex flex-col items-center"
+                aria-label={`Go to ${t.slides[s.id].title}`}
+              >
+                <span
+                  className="h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: i === index ? 28 : 8,
+                    background: i === index ? s.accent : dotIdle,
+                  }}
+                />
+                <span className={`pointer-events-none absolute -top-9 whitespace-nowrap rounded-md border ${tooltipBorder} ${tooltipBg} px-2 py-1 text-[10px] opacity-0 transition-opacity duration-200 group-hover:opacity-100`}>
+                  {t.slides[s.id].title}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => go(1)}
+            className={`flex h-10 w-10 items-center justify-center rounded-full border ${navBtn} transition`}
+            aria-label={t.nav.next}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+        {/* Made by Aishik */}
+        <div className="mt-2 text-center">
+          <span className={`text-xs font-medium ${textSub}`}>
+            {t.footer.madeBy}
+          </span>
+        </div>
+      </footer>
+
+      <style>{`
+        @keyframes slidein {
+          from { opacity: 0; transform: translateY(12px) scale(0.99); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
+
+// Mount the application.
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
